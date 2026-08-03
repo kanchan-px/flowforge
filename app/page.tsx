@@ -1,15 +1,13 @@
-import { Button } from "@/components/ui/button";
+import { getSession } from "@/lib/session";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+
+  console.log(session);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6">
-      <h1 className="text-5xl font-bold">
-        Welcome to FlowForge 🚀
-      </h1>
-
-      <Button>
-        Create Workspace
-      </Button>
-    </main>
+    <div className="p-10">
+      <pre>{JSON.stringify(session, null, 2)}</pre>
+    </div>
   );
 }
