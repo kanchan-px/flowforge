@@ -25,9 +25,8 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState(
-  searchParams.get("search") ?? ""
-);
+  const sort = searchParams.get("sort") ?? "newest";
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
 
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -42,22 +41,22 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
   }
 
   useEffect(() => {
-  const timer = setTimeout(() => {
-    updateFilter("search", search);
-  }, 400);
+    const timer = setTimeout(() => {
+      updateFilter("search", search);
+    }, 400);
 
-  return () => clearTimeout(timer);
-}, [search]);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   return (
     <div className="flex flex-wrap gap-4 rounded-2xl border bg-white p-4 shadow-sm">
       {/* Search */}
       <Input
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  placeholder="Search tasks..."
-  className="w-64"
-/>
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search tasks..."
+        className="w-64"
+      />
 
       {/* Status */}
       <Select
@@ -123,9 +122,7 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
         <SelectTrigger className="w-52">
           <SelectValue>
             {searchParams.get("project")
-              ? projects.find(
-                  (p) => p.id === searchParams.get("project")
-                )?.name
+              ? projects.find((p) => p.id === searchParams.get("project"))?.name
               : "All Projects"}
           </SelectValue>
         </SelectTrigger>
@@ -134,13 +131,37 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
           <SelectItem value="ALL">All Projects</SelectItem>
 
           {projects.map((project) => (
-            <SelectItem
-              key={project.id}
-              value={project.id}
-            >
+            <SelectItem key={project.id} value={project.id}>
               {project.name}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+      {/* Sort */}
+      <Select
+        value={sort}
+        onValueChange={(value) => updateFilter("sort", value ?? "newest")}
+      >
+        <SelectTrigger className="w-44">
+          <SelectValue>
+            {sort === "newest"
+              ? "Newest"
+              : sort === "oldest"
+                ? "Oldest"
+                : sort === "due"
+                  ? "Due Date"
+                  : sort === "priority"
+                    ? "Priority"
+                    : "Status"}
+          </SelectValue>
+        </SelectTrigger>
+
+        <SelectContent>
+          <SelectItem value="newest">Newest</SelectItem>
+          <SelectItem value="oldest">Oldest</SelectItem>
+          <SelectItem value="due">Due Date</SelectItem>
+          <SelectItem value="priority">Priority</SelectItem>
+          <SelectItem value="status">Status</SelectItem>
         </SelectContent>
       </Select>
     </div>

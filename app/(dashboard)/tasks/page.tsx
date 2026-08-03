@@ -13,6 +13,7 @@ interface TasksPageProps {
     priority?: string;
     project?: string;
     search?: string;
+    sort?: string;
   }>;
 }
 
@@ -23,6 +24,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const priority = filters.priority;
   const project = filters.project;
   const search = filters.search;
+  const sort = filters.sort;
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -49,22 +52,38 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   }
 
   if (search) {
-  where.OR = [
-    {
-      name: {
-        contains: search,
-        mode: "insensitive",
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
       },
-    },
-    {
-      description: {
-        contains: search,
-        mode: "insensitive",
+      {
+        description: {
+          contains: search,
+          mode: "insensitive",
+        },
       },
-    },
-  ];
-}
+    ];
+  }
+  let orderBy: any = {
+    createdAt: "desc",
+  };
 
+  switch (sort) {
+    case "oldest":
+      orderBy = {
+        createdAt: "asc",
+      };
+      break;
+
+    case "due":
+      orderBy = {
+        dueDate: "asc",
+      };
+      break;
+  }
   const projects = await prisma.project.findMany({
     where: {
       ownerId: session.user.id,
@@ -76,10 +95,39 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
   const tasks = await prisma.task.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
+    include: {
+      project: true,
     },
+    orderBy,
   });
+
+  const priorityOrder = {
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1,
+  };
+
+  const statusOrder = {
+    TODO: 1,
+    IN_PROGRESS: 2,
+    DONE: 3,
+  };
+
+  if (sort === "priority") {
+    tasks.sort(
+      (a, b) =>
+        priorityOrder[b.priority as keyof typeof priorityOrder] -
+        priorityOrder[a.priority as keyof typeof priorityOrder],
+    );
+  }
+
+  if (sort === "status") {
+    tasks.sort(
+      (a, b) =>
+        statusOrder[a.status as keyof typeof statusOrder] -
+        statusOrder[b.status as keyof typeof statusOrder],
+    );
+  }
 
   return (
     <div className="space-y-8">
