@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface Project {
   id: string;
@@ -40,6 +41,10 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
     router.push(`${pathname}?${params.toString()}`);
   }
 
+  function clearFilters() {
+    router.push(pathname);
+  }
+
   useEffect(() => {
     const timer = setTimeout(() => {
       updateFilter("search", search);
@@ -47,6 +52,10 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
 
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    setSearch(searchParams.get("search") ?? "");
+  }, [searchParams]);
 
   return (
     <div className="flex flex-wrap gap-4 rounded-2xl border bg-white p-4 shadow-sm">
@@ -164,6 +173,10 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
           <SelectItem value="status">Status</SelectItem>
         </SelectContent>
       </Select>
+
+      <Button variant="outline" onClick={clearFilters}>
+        Clear Filters
+      </Button>
     </div>
   );
 }
