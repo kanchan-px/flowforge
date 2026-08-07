@@ -14,6 +14,7 @@ interface TasksPageProps {
     project?: string;
     search?: string;
     sort?: string;
+    page?: string;
   }>;
 }
 
@@ -25,6 +26,10 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const project = filters.project;
   const search = filters.search;
   const sort = filters.sort;
+  const page = Number(filters.page ?? "1");
+  const PAGE_SIZE = 10;
+  const skip = (page - 1) * PAGE_SIZE;
+  const hasFilters = !!status || !!priority || !!project || !!search || !!sort;
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -93,13 +98,29 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     },
   });
 
+  const totalTasks = await prisma.task.count({
+    where: {
+      project: {
+        ownerId: session.user.id,
+      },
+    },
+  });
+
   const tasks = await prisma.task.findMany({
     where,
+    skip,
+    take: PAGE_SIZE,
     include: {
       project: true,
     },
     orderBy,
   });
+
+  const filteredTasks = await prisma.task.count({
+    where,
+  });
+
+  const totalPages = Math.ceil(filteredTasks / PAGE_SIZE);
 
   const priorityOrder = {
     HIGH: 3,
@@ -143,7 +164,14 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
       <TaskFilters projects={projects} />
 
-      <TaskList tasks={tasks} projects={projects} />
+      <TaskList
+        tasks={tasks}
+        projects={projects}
+        hasFilters={hasFilters}
+        totalTasks={totalTasks}
+        page={page}
+        totalPages={totalPages}
+      />
     </div>
   );
 }
