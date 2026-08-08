@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -36,23 +36,30 @@ interface CreateTaskFormProps {
 export function CreateTaskForm({ projects, onSuccess }: CreateTaskFormProps) {
   const [isPending, startTransition] = useTransition();
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<CreateTaskValues>({
-    resolver: zodResolver(createTaskSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      status: "TODO",
-      priority: "MEDIUM",
-      dueDate: "",
-      projectId: projects[0]?.id ?? "",
-    },
-  });
+const {
+  register,
+  handleSubmit,
+  setValue,
+  watch,
+  getValues,
+  formState: { errors },
+} = useForm<CreateTaskValues>({
+  resolver: zodResolver(createTaskSchema),
+  defaultValues: {
+    name: "",
+    description: "",
+    status: "TODO",
+    priority: "MEDIUM",
+    dueDate: "",
+    projectId: "",
+  },
+});
+
+useEffect(() => {
+  if (projects.length > 0 && !getValues("projectId")) {
+    setValue("projectId", projects[0].id);
+  }
+}, [projects, getValues, setValue]);
 
   function onSubmit(values: CreateTaskValues) {
     startTransition(async () => {

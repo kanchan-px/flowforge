@@ -41,8 +41,8 @@ const routes = [
 
 export function Sidebar() {
   return (
-    <aside className="flex h-screen w-72 flex-col border-r border-slate-200 bg-white">
-      <div className="border-b border-slate-200 px-6 py-6">
+    <aside className="flex h-screen w-[278px] shrink-0 flex-col border-r bg-white">
+      <div className="border-b p-4">
         <Logo />
       </div>
 
@@ -56,8 +56,6 @@ export function Sidebar() {
           />
         ))}
       </nav>
-
-
     </aside>
   );
 }
