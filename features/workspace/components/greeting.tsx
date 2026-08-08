@@ -16,7 +16,7 @@ export async function Greeting() {
   return (
     <div className="space-y-2">
       <p className="text-base font-medium text-blue-600">
-        {greeting} 👋
+        {greeting} 
       </p>
 
       <h1 className="text-4xl font-bold tracking-tight text-slate-900">

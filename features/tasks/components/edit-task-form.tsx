@@ -23,6 +23,8 @@ import {
 
 import { updateTask } from "../actions/update-task";
 
+import { TaskStatus, TaskPriority } from "@prisma/client";
+
 interface Project {
   id: string;
   name: string;
@@ -32,8 +34,8 @@ interface EditTaskFormProps {
   id: string;
   name: string;
   description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  priority: "LOW" | "MEDIUM" | "HIGH";
+  status: TaskStatus;
+  priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
   projects: Project[];

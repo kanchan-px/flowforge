@@ -1,11 +1,24 @@
+import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
+import { ProjectList } from "@/features/projects/components/project-list";
+
 export default function ProjectsPage() {
   return (
-    <div className="rounded-xl border bg-white p-8">
-      <h1 className="text-3xl font-bold">Projects</h1>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Projects
+          </h1>
 
-      <p className="mt-2 text-slate-500">
-        Coming in Phase 5...
-      </p>
+          <p className="text-slate-500">
+            Manage all your projects
+          </p>
+        </div>
+
+        <CreateProjectDialog />
+      </div>
+
+      <ProjectList />
     </div>
   );
 }

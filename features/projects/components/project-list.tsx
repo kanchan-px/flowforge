@@ -15,13 +15,26 @@ export async function ProjectList() {
   }
 
   const projects = await prisma.project.findMany({
-    where: {
-      ownerId: session.user.id,
+  where: {
+    ownerId: session.user.id,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+  select: {
+    id: true,
+    name: true,
+    description: true,
+    createdAt: true,
+    updatedAt: true,
+
+    _count: {
+      select: {
+        tasks: true,
+      },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  },
+});
 
   if (projects.length === 0) {
     return (
@@ -39,11 +52,13 @@ export async function ProjectList() {
     <div className="space-y-4">
       {projects.map((project) => (
         <ProjectCard
-          key={project.id}
-          id={project.id}
-          name={project.name}
-          description={project.description}
-        />
+  id={project.id}
+  name={project.name}
+  description={project.description}
+  createdAt={project.createdAt}
+  updatedAt={project.updatedAt}
+  taskCount={project._count.tasks}
+/>
       ))}
     </div>
   );

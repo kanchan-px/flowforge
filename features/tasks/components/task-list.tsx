@@ -1,5 +1,6 @@
 import { TaskCard } from "./task-card";
 import { Pagination } from "./pagination";
+import { TaskStatus, TaskPriority } from "@prisma/client";
 
 interface Project {
   id: string;
@@ -10,10 +11,11 @@ interface Task {
   id: string;
   name: string;
   description: string | null;
-  status: string;
-  priority: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
+  
 }
 
 interface TaskListProps {
@@ -71,8 +73,8 @@ export function TaskList({
           id={task.id}
           name={task.name}
           description={task.description}
-          status={task.status as "TODO" | "IN_PROGRESS" | "DONE"}
-          priority={task.priority as "LOW" | "MEDIUM" | "HIGH"}
+          status={task.status}
+          priority={task.priority}
           dueDate={task.dueDate}
           projectId={task.projectId}
           projects={projects}

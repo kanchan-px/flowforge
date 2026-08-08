@@ -30,13 +30,25 @@ model Project {
   @@map("project")
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model Task {
   id          String   @id @default(cuid())
   name        String
   description String?
 
-  status      String   @default("TODO")
-  priority    String   @default("MEDIUM")
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
 
   dueDate     DateTime?
 

@@ -10,19 +10,29 @@ export default function WorkspacePage() {
     <div className="space-y-8">
       <Greeting />
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">
-          Your Projects
-        </h2>
-
-        <CreateProjectDialog />
-      </div>
-
-      <ProjectList />
-
       <StatsGrid />
 
-      <RecentActivity />
+      <div className="grid gap-8 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">
+                Projects
+              </h2>
+
+              <p className="text-sm text-slate-500">
+                Manage your active projects.
+              </p>
+            </div>
+
+            <CreateProjectDialog />
+          </div>
+
+          <ProjectList />
+        </div>
+
+        <RecentActivity />
+      </div>
     </div>
   );
 }

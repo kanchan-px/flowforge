@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Pencil } from "lucide-react";
+import { TaskStatus, TaskPriority } from "@prisma/client";
 
 import {
   Dialog,
@@ -23,8 +24,8 @@ interface EditTaskDialogProps {
   id: string;
   name: string;
   description: string | null;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  priority: "LOW" | "MEDIUM" | "HIGH";
+  status: TaskStatus;
+  priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
   projects: Project[];

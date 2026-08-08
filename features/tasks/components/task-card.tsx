@@ -2,6 +2,7 @@ import { Calendar, FolderKanban } from "lucide-react";
 
 import { EditTaskDialog } from "./edit-task-dialog";
 import { DeleteTaskButton } from "./delete-task-button";
+import { TaskStatus, TaskPriority } from "@prisma/client";
 
 
 interface Project {
@@ -14,8 +15,8 @@ interface TaskCardProps {
   name: string;
   description: string | null;
 
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  priority: "LOW" | "MEDIUM" | "HIGH";
+  status: TaskStatus;
+priority: TaskPriority;
 
   dueDate: Date | null;
 

@@ -1,41 +1,51 @@
 import {
   FolderKanban,
   CheckSquare,
-  Users,
-  BarChart3,
+  CircleCheckBig,
+  TriangleAlert,
 } from "lucide-react";
 
+import { getSession } from "@/lib/session";
+import { getDashboardStats } from "../queries/get-dashboard-stats";
 import { StatsCard } from "./stats-card";
 
-export function StatsGrid() {
+export async function StatsGrid() {
+  const session = await getSession();
+
+  if (!session) {
+    return null;
+  }
+
+  const stats = await getDashboardStats(session.user.id);
+
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
       <StatsCard
         title="Projects"
-        value={12}
+        value={stats.totalProjects}
         description="Active projects"
         icon={FolderKanban}
       />
 
       <StatsCard
         title="Tasks"
-        value={48}
-        description="Open tasks"
+        value={stats.totalTasks}
+        description="Total tasks"
         icon={CheckSquare}
       />
 
       <StatsCard
-        title="Team"
-        value={8}
-        description="Members"
-        icon={Users}
+        title="Completed"
+        value={stats.completedTasks}
+        description="Finished tasks"
+        icon={CircleCheckBig}
       />
 
       <StatsCard
-        title="Completed"
-        value={132}
-        description="Finished tasks"
-        icon={BarChart3}
+        title="Overdue"
+        value={stats.overdueTasks}
+        description="Past due date"
+        icon={TriangleAlert}
       />
     </div>
   );
