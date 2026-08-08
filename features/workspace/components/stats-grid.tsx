@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   FolderKanban,
   CheckSquare,
@@ -19,34 +21,42 @@ export async function StatsGrid() {
   const stats = await getDashboardStats(session.user.id);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      <StatsCard
-        title="Projects"
-        value={stats.totalProjects}
-        description="Active projects"
-        icon={FolderKanban}
-      />
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <Link href="/projects" className="block">
+        <StatsCard
+          title="Projects"
+          value={stats.totalProjects}
+          description="Active projects"
+          icon={FolderKanban}
+        />
+      </Link>
 
-      <StatsCard
-        title="Tasks"
-        value={stats.totalTasks}
-        description="Total tasks"
-        icon={CheckSquare}
-      />
+      <Link href="/tasks" className="block">
+        <StatsCard
+          title="Tasks"
+          value={stats.totalTasks}
+          description="Total tasks"
+          icon={CheckSquare}
+        />
+      </Link>
 
-      <StatsCard
-        title="Completed"
-        value={stats.completedTasks}
-        description="Finished tasks"
-        icon={CircleCheckBig}
-      />
+      <Link href="/tasks?status=DONE" className="block">
+        <StatsCard
+          title="Completed"
+          value={stats.completedTasks}
+          description="Finished tasks"
+          icon={CircleCheckBig}
+        />
+      </Link>
 
-      <StatsCard
-        title="Overdue"
-        value={stats.overdueTasks}
-        description="Past due date"
-        icon={TriangleAlert}
-      />
+      <Link href="/tasks?overdue=true" className="block">
+        <StatsCard
+          title="Overdue"
+          value={stats.overdueTasks}
+          description="Past due date"
+          icon={TriangleAlert}
+        />
+      </Link>
     </div>
   );
 }

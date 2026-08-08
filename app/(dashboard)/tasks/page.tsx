@@ -15,6 +15,7 @@ interface TasksPageProps {
     search?: string;
     sort?: string;
     page?: string;
+    overdue?: string;
   }>;
 }
 
@@ -29,7 +30,14 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const page = Number(filters.page ?? "1");
   const PAGE_SIZE = 10;
   const skip = (page - 1) * PAGE_SIZE;
-  const hasFilters = !!status || !!priority || !!project || !!search || !!sort;
+  const overdue = filters.overdue;
+  const hasFilters =
+  !!status ||
+  !!priority ||
+  !!project ||
+  !!search ||
+  !!sort ||
+  overdue === "true";
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -55,6 +63,20 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   if (project) {
     where.projectId = project;
   }
+
+  if (overdue === "true") {
+  const now = new Date();
+
+  where.dueDate = {
+    lt: now,
+  };
+
+  where.status = {
+    not: "DONE",
+  };
+} else if (status) {
+  where.status = status;
+}
 
   if (search) {
     where.OR = [
