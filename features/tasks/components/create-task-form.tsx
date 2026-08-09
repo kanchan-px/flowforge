@@ -30,10 +30,15 @@ interface Project {
 
 interface CreateTaskFormProps {
   projects: Project[];
+  projectId?: string;
   onSuccess: () => void;
 }
 
-export function CreateTaskForm({ projects, onSuccess }: CreateTaskFormProps) {
+export function CreateTaskForm({
+  projects,
+  projectId,
+  onSuccess,
+}: CreateTaskFormProps) {
   const [isPending, startTransition] = useTransition();
 
 const {
@@ -46,13 +51,13 @@ const {
 } = useForm<CreateTaskValues>({
   resolver: zodResolver(createTaskSchema),
   defaultValues: {
-    name: "",
-    description: "",
-    status: "TODO",
-    priority: "MEDIUM",
-    dueDate: "",
-    projectId: "",
-  },
+  name: "",
+  description: "",
+  status: "TODO",
+  priority: "MEDIUM",
+  dueDate: "",
+  projectId: projectId ?? projects[0]?.id ?? "",
+},
 });
 
 useEffect(() => {
@@ -96,39 +101,44 @@ useEffect(() => {
         )}
       </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Project</label>
+{!projectId && (
+  <div>
+    <label className="mb-2 block text-sm font-semibold">
+      Project
+    </label>
 
-        <Select
-          value={watch("projectId")}
-          onValueChange={(value) => {
-            if (value) {
-              setValue("projectId", value);
-            }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {projects.find((project) => project.id === watch("projectId"))
-                ?.name ?? "Select a project"}
-            </SelectValue>
-          </SelectTrigger>
-          
-          <SelectContent>
-            {projects.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
-                {project.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <Select
+      value={watch("projectId")}
+      onValueChange={(value) => {
+        if (value) {
+          setValue("projectId", value);
+        }
+      }}
+    >
+      <SelectTrigger>
+        <SelectValue>
+          {projects.find(
+            (project) => project.id === watch("projectId")
+          )?.name ?? "Select a project"}
+        </SelectValue>
+      </SelectTrigger>
 
-        {errors.projectId && (
-          <p className="mt-1 text-sm text-red-500">
-            {errors.projectId.message}
-          </p>
-        )}
-      </div>
+      <SelectContent>
+        {projects.map((project) => (
+          <SelectItem key={project.id} value={project.id}>
+            {project.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+
+    {errors.projectId && (
+      <p className="mt-1 text-sm text-red-500">
+        {errors.projectId.message}
+      </p>
+    )}
+  </div>
+)}
 
       <div>
         <label className="mb-2 block text-sm font-semibold">Status</label>

@@ -19,7 +19,11 @@ interface Project {
   name: string;
 }
 
-export function CreateTaskDialog() {
+interface CreateTaskDialogProps {
+  projectId?: string;
+}
+
+export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
   const [open, setOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -34,17 +38,19 @@ export function CreateTaskDialog() {
     }
   }, [open]);
 
+  const selectedProject = projectId
+    ? projects.find((project) => project.id === projectId)
+    : undefined;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="inline-flex items-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+      <DialogTrigger className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700">
         + New Task
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Create Task
-          </DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Create Task</DialogTitle>
 
           <DialogDescription>
             Add a new task to one of your projects.
@@ -53,6 +59,7 @@ export function CreateTaskDialog() {
 
         <CreateTaskForm
           projects={projects}
+          projectId={projectId}
           onSuccess={() => setOpen(false)}
         />
       </DialogContent>
