@@ -6,15 +6,14 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+import { createNotification } from "@/features/notifications/actions/create-notification";
+
 import {
   createTaskSchema,
   type CreateTaskValues,
 } from "../schemas/create-task-schema";
 
-export async function updateTask(
-  id: string,
-  values: CreateTaskValues
-) {
+export async function updateTask(id: string, values: CreateTaskValues) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -43,19 +42,27 @@ export async function updateTask(
   }
 
   await prisma.task.update({
-  where: {
-    id,
-  },
-  data: {
-    name: validated.name,
-    description: validated.description,
-    status: validated.status,
-    priority: validated.priority,
-    dueDate: validated.dueDate
-      ? new Date(validated.dueDate)
-      : null,
-    projectId: validated.projectId,
-  },
-});
+    where: {
+      id,
+    },
+    data: {
+      name: validated.name,
+      description: validated.description,
+      status: validated.status,
+      priority: validated.priority,
+      dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+      projectId: validated.projectId,
+    },
+  });
+
+  if (task.status !== "DONE" && validated.status === "DONE") {
+  await createNotification({
+    userId: session.user.id,
+    type: "TASK_COMPLETED",
+    title: "Task completed",
+    message: `You completed the task "${validated.name}".`,
+  });
+}
+
   revalidatePath("/tasks");
 }

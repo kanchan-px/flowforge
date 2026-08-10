@@ -1,9 +1,11 @@
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 import { SearchBar } from "./search-bar";
+import { NotificationDropdown } from "@/features/notifications/components/notification-dropdown";
 import { UserNav } from "@/components/dashboard/user-nav";
 
 import { getSession } from "@/lib/session";
+import { getNotifications } from "@/features/notifications/queries/get-notifications";
 
 export async function Navbar() {
   const session = await getSession();
@@ -11,14 +13,22 @@ export async function Navbar() {
   const name = session?.user.name ?? "Guest";
   const email = session?.user.email ?? "";
 
+  const { notifications, unreadCount } =
+    await getNotifications();
+
   return (
-    <header className="mb-8 flex h-16 items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 shadow-sm">
-      <SearchBar />
+    <header className="flex h-16 items-center justify-between border-b bg-white px-6">
+      <div className="relative w-full max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+        <SearchBar />
+      </div>
 
       <div className="flex items-center gap-4">
-        <button className="rounded-xl p-2 transition hover:bg-slate-100">
-          <Bell className="h-5 w-5 text-slate-600" />
-        </button>
+        <NotificationDropdown
+          notifications={notifications}
+          unreadCount={unreadCount}
+        />
 
         <UserNav
           name={name}

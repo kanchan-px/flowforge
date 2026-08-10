@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+import { createNotification } from "@/features/notifications/actions/create-notification";
+
 import {
   createProjectSchema,
   type CreateProjectValues,
@@ -32,13 +34,20 @@ export async function createProject(values: unknown) {
   }
 
   // Create project
-  await prisma.project.create({
-    data: {
-      name: parsed.data.name,
-      description: parsed.data.description,
-      ownerId: session.user.id,
-    },
-  });
+  const project = await prisma.project.create({
+  data: {
+    name: parsed.data.name,
+    description: parsed.data.description,
+    ownerId: session.user.id,
+  },
+});
+
+await createNotification({
+  userId: session.user.id,
+  type: "PROJECT_CREATED",
+  title: "Project created",
+  message: `You created the project "${project.name}".`,
+});
 
   revalidatePath("/workspace");
 

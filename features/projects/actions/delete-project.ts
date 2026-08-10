@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+import { createNotification } from "@/features/notifications/actions/create-notification";
+
 export async function deleteProject(id: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -35,6 +37,13 @@ export async function deleteProject(id: string) {
       error: "Unauthorized.",
     };
   }
+
+  await createNotification({
+  userId: session.user.id,
+  type: "PROJECT_DELETED",
+  title: "Project deleted",
+  message: `You deleted the project "${project.name}".`,
+});
 
   await prisma.project.delete({
     where: {

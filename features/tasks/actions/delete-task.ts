@@ -6,6 +6,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+import { createNotification } from "@/features/notifications/actions/create-notification";
+
 export async function deleteTask(id: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -31,6 +33,13 @@ export async function deleteTask(id: string) {
   if (task.project.ownerId !== session.user.id) {
     throw new Error("Unauthorized");
   }
+
+  await createNotification({
+  userId: session.user.id,
+  type: "TASK_DELETED",
+  title: "Task deleted",
+  message: `You deleted the task "${task.name}".`,
+});
 
   await prisma.task.delete({
     where: {
