@@ -41,6 +41,10 @@ export async function updateTask(id: string, values: CreateTaskValues) {
     throw new Error("Unauthorized");
   }
 
+  // Store whether the task's status actually changed.
+  const statusChanged = task.status !== validated.status;
+
+  // Update the task.
   await prisma.task.update({
     where: {
       id,
@@ -50,19 +54,33 @@ export async function updateTask(id: string, values: CreateTaskValues) {
       description: validated.description,
       status: validated.status,
       priority: validated.priority,
-      dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+      dueDate: validated.dueDate
+        ? new Date(validated.dueDate)
+        : null,
       projectId: validated.projectId,
     },
   });
 
+  // Record the status transition for analytics.
+  if (statusChanged) {
+    await prisma.taskStatusHistory.create({
+      data: {
+        taskId: task.id,
+        fromStatus: task.status,
+        toStatus: validated.status,
+      },
+    });
+  }
+
+  // Create a notification when a task is completed.
   if (task.status !== "DONE" && validated.status === "DONE") {
-  await createNotification({
-    userId: session.user.id,
-    type: "TASK_COMPLETED",
-    title: "Task completed",
-    message: `You completed the task "${validated.name}".`,
-  });
-}
+    await createNotification({
+      userId: session.user.id,
+      type: "TASK_COMPLETED",
+      title: "Task completed",
+      message: `You completed the task "${validated.name}".`,
+    });
+  }
 
   revalidatePath("/tasks");
 }

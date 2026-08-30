@@ -59,8 +59,26 @@ model Task {
   projectId   String
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   notifications Notification[]
+  statusHistory TaskStatusHistory[]
 
   @@map("task")
+}
+
+model TaskStatusHistory {
+  id String @id @default(cuid())
+
+  fromStatus TaskStatus?
+  toStatus   TaskStatus
+
+  changedAt DateTime @default(now())
+
+  taskId String
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([changedAt])
+  @@index([toStatus])
+  @@map("task_status_history")
 }
 
 model Notification {

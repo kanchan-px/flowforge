@@ -24,7 +24,7 @@ export async function createTask(values: CreateTaskValues) {
 
   const validated = createTaskSchema.parse(values);
 
-  const task = await prisma.task.create({
+const task = await prisma.task.create({
   data: {
     name: validated.name,
     description: validated.description,
@@ -34,6 +34,14 @@ export async function createTask(values: CreateTaskValues) {
       ? new Date(validated.dueDate)
       : null,
     projectId: validated.projectId,
+  },
+});
+
+await prisma.taskStatusHistory.create({
+  data: {
+    taskId: task.id,
+    fromStatus: null,
+    toStatus: task.status,
   },
 });
 
