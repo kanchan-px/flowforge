@@ -1,5 +1,59 @@
+// "use client";
+
+// import { LogOut } from "lucide-react";
+
+// import { authClient } from "@/lib/auth-client";
+
+// interface UserNavProps {
+//   name: string;
+//   email: string;
+// }
+
+// export function UserNav({ name, email }: UserNavProps) {
+//   const initial = name.charAt(0).toUpperCase();
+
+//   async function handleSignOut() {
+//     await authClient.signOut({
+//       fetchOptions: {
+//         onSuccess: () => {
+//           window.location.href = "/sign-in";
+//         },
+//       },
+//     });
+//   }
+
+//   return (
+//     <div className="flex items-center gap-4">
+//       <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
+//         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+//           {initial}
+//         </div>
+
+//         <div className="hidden md:block">
+//           <p className="text-sm font-semibold text-slate-900">
+//             {name}
+//           </p>
+
+//           <p className="text-xs text-slate-500">
+//             {email}
+//           </p>
+//         </div>
+//       </div>
+
+//       <button
+//         onClick={handleSignOut}
+//         className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
+//       >
+//         <LogOut className="h-4 w-4" />
+//         Sign Out
+//       </button>
+//     </div>
+//   );
+// }
+
 "use client";
 
+import Image from "next/image";
 import { LogOut } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -7,9 +61,14 @@ import { authClient } from "@/lib/auth-client";
 interface UserNavProps {
   name: string;
   email: string;
+  image: string | null;
 }
 
-export function UserNav({ name, email }: UserNavProps) {
+export function UserNav({
+  name,
+  email,
+  image,
+}: UserNavProps) {
   const initial = name.charAt(0).toUpperCase();
 
   async function handleSignOut() {
@@ -25,10 +84,24 @@ export function UserNav({ name, email }: UserNavProps) {
   return (
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-          {initial}
+        {/* Avatar */}
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-blue-600">
+          {image ? (
+            <Image
+              src={image}
+              alt={`${name}'s profile picture`}
+              fill
+              sizes="40px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-semibold text-white">
+              {initial}
+            </div>
+          )}
         </div>
 
+        {/* User information */}
         <div className="hidden md:block">
           <p className="text-sm font-semibold text-slate-900">
             {name}
@@ -40,6 +113,7 @@ export function UserNav({ name, email }: UserNavProps) {
         </div>
       </div>
 
+      {/* Sign Out */}
       <button
         onClick={handleSignOut}
         className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100"
@@ -50,3 +124,4 @@ export function UserNav({ name, email }: UserNavProps) {
     </div>
   );
 }
+
