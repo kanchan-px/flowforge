@@ -124,6 +124,12 @@ model User {
   updatedAt     DateTime  @updatedAt
   emailVerified Boolean   @default(false)
   image         String?
+
+  // Notification preferences
+  taskCompletedNotifications   Boolean @default(true)
+  projectActivityNotifications Boolean @default(true)
+  systemNotifications          Boolean @default(true)
+
   sessions      Session[]
   accounts      Account[]
   projects      Project[]

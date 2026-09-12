@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { Prisma } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -19,7 +20,9 @@ interface TasksPageProps {
   }>;
 }
 
-export default async function TasksPage({ searchParams }: TasksPageProps) {
+export default async function TasksPage({
+  searchParams,
+}: TasksPageProps) {
   const filters = await searchParams;
 
   const status = filters.status;
@@ -31,13 +34,14 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   const PAGE_SIZE = 10;
   const skip = (page - 1) * PAGE_SIZE;
   const overdue = filters.overdue;
+
   const hasFilters =
-  !!status ||
-  !!priority ||
-  !!project ||
-  !!search ||
-  !!sort ||
-  overdue === "true";
+    !!status ||
+    !!priority ||
+    !!project ||
+    !!search ||
+    !!sort ||
+    overdue === "true";
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -46,18 +50,20 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   if (!session) {
     return null;
   }
-  const where: any = {
+
+  const where: Prisma.TaskWhereInput = {
     project: {
       ownerId: session.user.id,
     },
   };
 
   if (status) {
-    where.status = status;
+    where.status = status as Prisma.TaskWhereInput["status"];
   }
 
   if (priority) {
-    where.priority = priority;
+    where.priority =
+      priority as Prisma.TaskWhereInput["priority"];
   }
 
   if (project) {
@@ -65,18 +71,18 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   }
 
   if (overdue === "true") {
-  const now = new Date();
+    const now = new Date();
 
-  where.dueDate = {
-    lt: now,
-  };
+    where.dueDate = {
+      lt: now,
+    };
 
-  where.status = {
-    not: "DONE",
-  };
-} else if (status) {
-  where.status = status;
-}
+    where.status = {
+      not: "DONE",
+    };
+  } else if (status) {
+    where.status = status as Prisma.TaskWhereInput["status"];
+  }
 
   if (search) {
     where.OR = [
@@ -94,7 +100,8 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       },
     ];
   }
-  let orderBy: any = {
+
+  let orderBy: Prisma.TaskOrderByWithRelationInput = {
     createdAt: "desc",
   };
 
@@ -111,6 +118,7 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
       };
       break;
   }
+
   const projects = await prisma.project.findMany({
     where: {
       ownerId: session.user.id,
@@ -142,7 +150,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     where,
   });
 
-  const totalPages = Math.ceil(filteredTasks / PAGE_SIZE);
+  const totalPages = Math.ceil(
+    filteredTasks / PAGE_SIZE,
+  );
 
   const priorityOrder = {
     HIGH: 3,
@@ -159,16 +169,24 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
   if (sort === "priority") {
     tasks.sort(
       (a, b) =>
-        priorityOrder[b.priority as keyof typeof priorityOrder] -
-        priorityOrder[a.priority as keyof typeof priorityOrder],
+        priorityOrder[
+          b.priority as keyof typeof priorityOrder
+        ] -
+        priorityOrder[
+          a.priority as keyof typeof priorityOrder
+        ],
     );
   }
 
   if (sort === "status") {
     tasks.sort(
       (a, b) =>
-        statusOrder[a.status as keyof typeof statusOrder] -
-        statusOrder[b.status as keyof typeof statusOrder],
+        statusOrder[
+          a.status as keyof typeof statusOrder
+        ] -
+        statusOrder[
+          b.status as keyof typeof statusOrder
+        ],
     );
   }
 
@@ -178,7 +196,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         <div>
           <h1 className="text-3xl font-bold">Tasks</h1>
 
-          <p className="text-slate-500">Manage all your project tasks</p>
+          <p className="text-slate-500">
+            Manage all your project tasks
+          </p>
         </div>
 
         <CreateTaskDialog />
@@ -197,3 +217,4 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
     </div>
   );
 }
+

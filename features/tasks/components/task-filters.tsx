@@ -53,9 +53,11 @@ export function TaskFilters({ projects }: TaskFiltersProps) {
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => {
-    setSearch(searchParams.get("search") ?? "");
-  }, [searchParams]);
+  useEffect(() => { 
+    // Intentional synchronization between the URL and local input state. 
+    // The search input must reflect the current "search" query parameter. 
+    // eslint-disable-next-line react-hooks/set-state-in-effect 
+  setSearch(searchParams.get("search") ?? ""); }, [searchParams]);
 
   return (
     <div className="flex flex-wrap gap-4 rounded-2xl border bg-white p-4 shadow-sm">

@@ -44,11 +44,6 @@ export function SearchBar() {
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery) {
-      setResults({
-        projects: [],
-        tasks: [],
-      });
-
       return;
     }
 
@@ -83,7 +78,9 @@ export function SearchBar() {
       tasks: [],
     });
 
-    router.push(`/tasks?search=${encodeURIComponent(query.trim())}`);
+    router.push(
+      `/tasks?search=${encodeURIComponent(query.trim())}`,
+    );
   }
 
   return (
@@ -152,7 +149,9 @@ export function SearchBar() {
                     <button
                       key={task.id}
                       type="button"
-                      onClick={() => handleTaskClick(task.id)}
+                      onClick={() =>
+                        handleTaskClick(task.id)
+                      }
                       className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50"
                     >
                       <div className="rounded-lg bg-slate-100 p-2">

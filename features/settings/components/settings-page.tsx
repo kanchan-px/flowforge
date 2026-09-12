@@ -2,9 +2,10 @@ import { getSession } from "@/lib/session";
 
 import { ProfileSettings } from "./profile-settings";
 import { SecuritySettings } from "./security-settings";
-import { AppearanceSettings } from "./appearance-settings";
 import { NotificationSettings } from "./notification-settings";
 import { DangerZone } from "./danger-zone";
+
+import { getNotificationPreferences } from "../queries/get-notification-preferences";
 
 export async function SettingsPage() {
   const session = await getSession();
@@ -18,6 +19,13 @@ export async function SettingsPage() {
     email: session.user.email,
     image: session.user.image ?? null,
   };
+
+  const notificationPreferences =
+    await getNotificationPreferences();
+
+  if (!notificationPreferences) {
+    return null;
+  }
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 p-6 md:p-8">
@@ -38,13 +46,12 @@ export async function SettingsPage() {
 
         <SecuritySettings />
 
-        <AppearanceSettings />
-
-        <NotificationSettings />
+        <NotificationSettings
+          preferences={notificationPreferences}
+        />
 
         <DangerZone />
       </div>
     </div>
   );
 }
-

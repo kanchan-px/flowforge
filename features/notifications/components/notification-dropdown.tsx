@@ -232,7 +232,7 @@ export function NotificationDropdown({
                   ? `${unreadCount} unread notification${
                       unreadCount === 1 ? "" : "s"
                     }`
-                  : "You're all caught up"}
+                  : "You&apos;re all caught up"}
               </p>
             </div>
 
@@ -260,7 +260,7 @@ export function NotificationDropdown({
               </p>
 
               <p className="mt-1 text-xs text-slate-500">
-                You're all caught up.
+                You&apos;re all caught up.
               </p>
             </div>
           ) : (

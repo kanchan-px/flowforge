@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import {
   signInSchema,
@@ -35,7 +36,7 @@ async function onSubmit(values: SignInValues) {
   });
 
   if (error) {
-    console.error(error);
+    toast.error("Failed to sign in.");
     return;
   }
 

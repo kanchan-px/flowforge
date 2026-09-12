@@ -38,8 +38,6 @@
 //   );
 // }
 
-import { Search } from "lucide-react";
-
 import { SearchBar } from "./search-bar";
 import { NotificationDropdown } from "@/features/notifications/components/notification-dropdown";
 import { UserNav } from "@/components/dashboard/user-nav";

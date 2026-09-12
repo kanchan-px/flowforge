@@ -34,6 +34,7 @@ export function AppearanceSettings() {
             className="rounded-lg border p-4 text-left transition hover:bg-muted"
           >
             <p className="font-medium">Light</p>
+
             <p className="mt-1 text-xs text-muted-foreground">
               Always use light mode
             </p>
@@ -44,6 +45,7 @@ export function AppearanceSettings() {
             className="rounded-lg border p-4 text-left transition hover:bg-muted"
           >
             <p className="font-medium">Dark</p>
+
             <p className="mt-1 text-xs text-muted-foreground">
               Always use dark mode
             </p>
@@ -54,6 +56,7 @@ export function AppearanceSettings() {
             className="rounded-lg border p-4 text-left transition hover:bg-muted"
           >
             <p className="font-medium">System</p>
+
             <p className="mt-1 text-xs text-muted-foreground">
               Follow your system preference
             </p>

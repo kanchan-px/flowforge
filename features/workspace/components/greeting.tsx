@@ -24,7 +24,7 @@ export async function Greeting() {
       </h1>
 
       <p className="text-lg text-slate-500">
-        Here's what's happening in your workspace today.
+        Here&apos;s what&apos;s happening in your workspace today.
       </p>
     </div>
   );
