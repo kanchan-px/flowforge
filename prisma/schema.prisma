@@ -12,6 +12,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ProjectRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  role      ProjectRole @default(MEMBER)
+  createdAt DateTime    @default(now())
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_member")
+}
+
 model Project {
   id          String   @id @default(cuid())
   name        String
@@ -25,8 +48,9 @@ model Project {
   tasks       Task[]
 
   ownerId     String
-  owner        User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   notifications Notification[]
+  members     ProjectMember[]
 
   @@map("project")
 }
@@ -58,9 +82,12 @@ model Task {
 
   projectId   String
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assigneeId  String?
+  assignee    User?   @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   notifications Notification[]
   statusHistory TaskStatusHistory[]
 
+  @@index([assigneeId])
   @@map("task")
 }
 
@@ -130,10 +157,12 @@ model User {
   projectActivityNotifications Boolean @default(true)
   systemNotifications          Boolean @default(true)
 
-  sessions      Session[]
-  accounts      Account[]
-  projects      Project[]
-  notifications Notification[]
+  sessions           Session[]
+  accounts           Account[]
+  projects           Project[]
+  notifications      Notification[]
+  projectMemberships ProjectMember[]
+  assignedTasks      Task[] @relation("TaskAssignee")
 
   @@map("user")
 }
@@ -179,8 +208,8 @@ model Verification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([identifier])
   @@map("verification")

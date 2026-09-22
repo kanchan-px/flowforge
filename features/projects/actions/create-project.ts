@@ -35,19 +35,20 @@ export async function createProject(values: unknown) {
 
   // Create project
   const project = await prisma.project.create({
-  data: {
-    name: parsed.data.name,
-    description: parsed.data.description,
-    ownerId: session.user.id,
-  },
-});
+    data: {
+      name: parsed.data.name,
+      description: parsed.data.description,
+      ownerId: session.user.id,
+      members: { create: { userId: session.user.id, role: "OWNER" } },
+    },
+  });
 
-await createNotification({
-  userId: session.user.id,
-  type: "PROJECT_CREATED",
-  title: "Project created",
-  message: `You created the project "${project.name}".`,
-});
+  await createNotification({
+    userId: session.user.id,
+    type: "PROJECT_CREATED",
+    title: "Project created",
+    message: `You created the project "${project.name}".`,
+  });
 
   revalidatePath("/workspace");
 
