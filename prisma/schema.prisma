@@ -35,6 +35,33 @@ model ProjectMember {
   @@map("project_member")
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  email       String
+  role        ProjectRole      @default(MEMBER)
+  status      InvitationStatus @default(PENDING)
+  token       String           @unique
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  invitedById String
+  invitedBy   User    @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([email])
+  @@map("invitation")
+}
+
 model Project {
   id          String   @id @default(cuid())
   name        String
@@ -51,6 +78,7 @@ model Project {
   owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   notifications Notification[]
   members     ProjectMember[]
+  invitations   Invitation[]
 
   @@map("project")
 }
@@ -163,6 +191,8 @@ model User {
   notifications      Notification[]
   projectMemberships ProjectMember[]
   assignedTasks      Task[] @relation("TaskAssignee")
+  sentInvitations    Invitation[]
+
 
   @@map("user")
 }
