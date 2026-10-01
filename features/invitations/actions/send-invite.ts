@@ -79,6 +79,21 @@ export async function sendInvite(values: SendInviteValues) {
     where: { projectId, email, status: "PENDING" },
   });
 
+  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
+
+  try {
+    await sendInvitationEmail({
+      to: email,
+      projectName: membership.project.name,
+      inviteLink,
+    });
+  } catch {
+    return {
+      error:
+        "Couldn't send the invitation email. Please check the email address and try again.",
+    };
+  }
+
   if (existingInvitation) {
     await prisma.invitation.update({
       where: { id: existingInvitation.id },
@@ -96,14 +111,6 @@ export async function sendInvite(values: SendInviteValues) {
       },
     });
   }
-
-  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${token}`;
-
-  await sendInvitationEmail({
-    to: email,
-    projectName: membership.project.name,
-    inviteLink,
-  });
 
   return { success: true };
 }

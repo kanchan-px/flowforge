@@ -7,7 +7,7 @@ export async function getProjectDetails(
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      ownerId: userId,
+      OR: [{ ownerId: userId }, { members: { some: { userId } } }],
     },
     include: {
       tasks: {
