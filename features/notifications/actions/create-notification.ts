@@ -9,6 +9,8 @@ interface CreateNotificationInput {
   type: NotificationType;
   title: string;
   message: string;
+  projectId?: string;
+  taskId?: string;
 }
 
 export async function createNotification({
@@ -16,6 +18,8 @@ export async function createNotification({
   type,
   title,
   message,
+  projectId,
+  taskId,
 }: CreateNotificationInput) {
   const user = await prisma.user.findUnique({
     where: {
@@ -46,7 +50,7 @@ export async function createNotification({
    * Project activity notifications
    */
   if (
-    type.startsWith("PROJECT_") &&
+    (type.startsWith("PROJECT_") || type.startsWith("INVITATION_")) &&
     !user.projectActivityNotifications
   ) {
     return;
@@ -68,6 +72,8 @@ export async function createNotification({
       type,
       title,
       message,
+      projectId,
+      taskId,
     },
   });
 }

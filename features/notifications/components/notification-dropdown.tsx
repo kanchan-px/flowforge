@@ -7,6 +7,9 @@ import {
   Check,
   Clock,
   FolderKanban,
+  UserCheck,
+  UserPlus,
+  UserX,
 } from "lucide-react";
 
 import { markNotificationAsRead } from "../actions/mark-notification-read";
@@ -85,6 +88,15 @@ function getNotificationIcon(type: string) {
     case "PROJECT_DELETED":
       return <FolderKanban className="h-4 w-4 text-slate-600" />;
 
+    case "INVITATION_RECEIVED":
+      return <UserPlus className="h-4 w-4 text-blue-600" />;
+
+    case "INVITATION_ACCEPTED":
+      return <UserCheck className="h-4 w-4 text-green-600" />;
+
+    case "INVITATION_DECLINED":
+      return <UserX className="h-4 w-4 text-slate-600" />;
+
     default:
       return <Bell className="h-4 w-4 text-slate-600" />;
   }
@@ -129,6 +141,27 @@ export function NotificationDropdown({
         }
 
         setOpen(false);
+
+        /*
+         * Invitation received: the user isn't a project member yet,
+         * so send them to their invitations page, not the project.
+         */
+        if (notification.type === "INVITATION_RECEIVED") {
+          router.push("/invitations");
+          return;
+        }
+
+        /*
+         * Invitation accepted/declined: the recipient is the sender,
+         * who is a member, so go to the project.
+         */
+        if (
+         notification.type.startsWith("INVITATION_") &&
+         notification.projectId
+        ) {
+          router.push(`/projects/${notification.projectId}`);
+         return;
+        }
 
         /*
          * Deleted tasks no longer exist.

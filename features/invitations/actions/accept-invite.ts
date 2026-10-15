@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/features/notifications/actions/create-notification";
 
 export async function acceptInvite(token: string) {
   const session = await auth.api.getSession({
@@ -17,6 +18,7 @@ export async function acceptInvite(token: string) {
 
   const invitation = await prisma.invitation.findUnique({
     where: { token },
+    include: { project: { select: { name: true } } },
   });
 
   if (!invitation) {
@@ -29,6 +31,10 @@ export async function acceptInvite(token: string) {
 
   if (invitation.status === "ACCEPTED") {
     return { error: "This invitation has already been accepted." };
+  }
+
+  if (invitation.status === "DECLINED") {
+    return { error: "This invitation was declined." };
   }
 
   if (invitation.expiresAt < new Date()) {
@@ -78,7 +84,17 @@ export async function acceptInvite(token: string) {
     }),
   ]);
 
+  await createNotification({
+    userId: invitation.invitedById,
+    type: "INVITATION_ACCEPTED",
+    title: "Invitation accepted",
+    message: `${session.user.name} accepted your invitation to join "${invitation.project.name}".`,
+    projectId: invitation.projectId,
+  });
+
   revalidatePath(`/projects/${invitation.projectId}`);
+  revalidatePath("/projects");
+  revalidatePath("/invitations");
 
   return { success: true, projectId: invitation.projectId };
 }

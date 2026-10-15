@@ -17,6 +17,10 @@ export async function ProjectList() {
   const projects = await prisma.project.findMany({
     where: {
       ownerId: session.user.id,
+      OR: [
+       { ownerId: session.user.id },
+       { members: { some: { userId: session.user.id } } },
+      ],
     },
     orderBy: {
       createdAt: "desc",

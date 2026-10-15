@@ -11,6 +11,7 @@ import {
   sendInviteSchema,
   type SendInviteValues,
 } from "../schemas/send-invite-schema";
+import { createNotification } from "@/features/notifications/actions/create-notification";
 
 const INVITE_EXPIRY_DAYS = 7;
 
@@ -110,6 +111,21 @@ export async function sendInvite(values: SendInviteValues) {
         invitedById: session.user.id,
       },
     });
+  }
+
+  if (existingUser) {
+    try {
+      await createNotification({
+        userId: existingUser.id,
+        type: "INVITATION_RECEIVED",
+        title: "New project invitation",
+        message: `${session.user.name} invited you to join "${membership.project.name}" as ${
+          role === "ADMIN" ? "an admin" : "a member"
+        }.`,
+      });
+    } catch (error) {
+      console.error("Failed to create invitation notification:", error);
+    }
   }
 
   return { success: true };

@@ -120,7 +120,7 @@ This same pattern — authenticate, validate, authorize, mutate, revalidate — 
 ### Setup
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/kanchan-px/flowforge
 cd flowforge
 npm install
 ```

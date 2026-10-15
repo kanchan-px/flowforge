@@ -5,6 +5,7 @@ import {
   CheckSquare,
   BarChart3,
   Settings,
+  Mail,
 } from "lucide-react";
 
 import { Logo } from "@/components/shared/logo";
@@ -21,6 +22,11 @@ const routes = [
     href: "/projects",
     label: "Projects",
     icon: FolderKanban,
+  },
+  {
+    href: "/invitations",
+    label: "Invitations",
+    icon: Mail,
   },
   {
     href: "/tasks",

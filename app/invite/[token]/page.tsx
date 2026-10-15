@@ -27,6 +27,10 @@ export default async function InvitePage({
     return <InviteShell><p>This invitation has already been accepted.</p></InviteShell>;
   }
 
+  if (invitation.status === "DECLINED") {
+    return <InviteShell><p>This invitation was declined.</p></InviteShell>;
+  }
+
   if (invitation.expiresAt < new Date()) {
     return <InviteShell><p>This invitation has expired. Ask the project owner to send a new one.</p></InviteShell>;
   }
