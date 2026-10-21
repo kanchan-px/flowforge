@@ -106,8 +106,12 @@ export default async function ProjectDetailsPage({
           {canManageMembers && <InviteMemberDialog projectId={project.id} />}
         </div>
 
-        <MembersList members={members} />
-
+        <MembersList
+          members={members}
+          currentUserId={session.user.id}
+          currentUserRole={currentMembership?.role}
+        />
+        
         {canManageMembers && pendingInvitations.length > 0 && (
           <div className="space-y-2 border-t pt-4">
             <h3 className="text-sm font-semibold text-slate-900">

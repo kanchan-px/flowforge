@@ -1,24 +1,51 @@
+import type { ProjectRole } from "@prisma/client";
+
+import { MemberActions } from "./member-actions";
+
 type Member = {
   id: string;
-  role: string;
+  role: ProjectRole;
   user: { id: string; name: string; email: string; image: string | null };
 };
 
-export function MembersList({ members }: { members: Member[] }) {
+export function MembersList({
+  members,
+  currentUserId,
+  currentUserRole,
+}: {
+  members: Member[];
+  currentUserId: string;
+  currentUserRole: ProjectRole | undefined;
+}) {
   return (
     <ul className="space-y-2">
       {members.map((member) => (
         <li
           key={member.id}
-          className="flex items-center justify-between rounded-md border p-3"
+          className="flex items-center justify-between gap-3 rounded-md border p-3"
         >
-          <div>
-            <p className="text-sm font-medium">{member.user.name}</p>
-            <p className="text-xs text-muted-foreground">{member.user.email}</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">
+              {member.user.name}
+              {member.user.id === currentUserId && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  (you)
+                </span>
+              )}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {member.user.email}
+            </p>
           </div>
-          <span className="text-xs font-medium uppercase text-muted-foreground">
-            {member.role}
-          </span>
+
+          <MemberActions
+            memberId={member.id}
+            memberUserId={member.user.id}
+            memberName={member.user.name}
+            role={member.role}
+            currentUserId={currentUserId}
+            currentUserRole={currentUserRole}
+          />
         </li>
       ))}
     </ul>

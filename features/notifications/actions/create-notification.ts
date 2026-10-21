@@ -51,6 +51,9 @@ export async function createNotification({
    */
   if (
     (type.startsWith("PROJECT_") || type.startsWith("INVITATION_")) &&
+    (type.startsWith("PROJECT_") ||
+      type.startsWith("INVITATION_") ||
+      type.startsWith("MEMBER_")) &&
     !user.projectActivityNotifications
   ) {
     return;

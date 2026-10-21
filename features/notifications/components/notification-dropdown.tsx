@@ -97,6 +97,12 @@ function getNotificationIcon(type: string) {
     case "INVITATION_DECLINED":
       return <UserX className="h-4 w-4 text-slate-600" />;
 
+    case "MEMBER_REMOVED":
+      return <UserX className="h-4 w-4 text-red-600" />;
+
+    case "MEMBER_ROLE_CHANGED":
+      return <UserCheck className="h-4 w-4 text-blue-600" />;
+
     default:
       return <Bell className="h-4 w-4 text-slate-600" />;
   }
@@ -161,6 +167,22 @@ export function NotificationDropdown({
         ) {
           router.push(`/projects/${notification.projectId}`);
          return;
+        }
+
+        /*
+         * Removed from a project: the page no longer opens for them.
+         */
+        if (notification.type === "MEMBER_REMOVED") {
+          router.push("/projects");
+          return;
+        }
+
+        if (
+          notification.type === "MEMBER_ROLE_CHANGED" &&
+          notification.projectId
+        ) {
+          router.push(`/projects/${notification.projectId}`);
+          return;
         }
 
         /*
