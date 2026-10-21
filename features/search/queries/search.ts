@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
 
 export async function searchProjectsAndTasks(
   userId: string,
@@ -16,7 +17,7 @@ export async function searchProjectsAndTasks(
   const [projects, tasks] = await Promise.all([
     prisma.project.findMany({
       where: {
-        ownerId: userId,
+        ...projectAccessFilter(userId),
         name: {
           contains: search,
           mode: "insensitive",
@@ -34,9 +35,7 @@ export async function searchProjectsAndTasks(
 
     prisma.task.findMany({
       where: {
-        project: {
-          ownerId: userId,
-        },
+        project: projectAccessFilter(userId),
         OR: [
           {
             name: {

@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
 
 export async function getDashboardStats(userId: string) {
   const now = new Date();
+
+    const taskWhere = {
+    project: projectAccessFilter(userId),
+  };
 
   const [
     totalProjects,
@@ -10,33 +15,23 @@ export async function getDashboardStats(userId: string) {
     overdueTasks,
   ] = await Promise.all([
     prisma.project.count({
-      where: {
-        ownerId: userId,
-      },
+      where: projectAccessFilter(userId),
+    }),
+
+    prisma.task.count({
+      where: taskWhere,
     }),
 
     prisma.task.count({
       where: {
-        project: {
-          ownerId: userId,
-        },
-      },
-    }),
-
-    prisma.task.count({
-      where: {
-        project: {
-          ownerId: userId,
-        },
+        ...taskWhere,
         status: "DONE",
       },
     }),
 
     prisma.task.count({
       where: {
-        project: {
-          ownerId: userId,
-        },
+        ...taskWhere,
         dueDate: {
           lt: now,
         },

@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
 
 export async function getRecentActivity(userId: string) {
   const [projects, tasks] = await Promise.all([
     prisma.project.findMany({
-      where: {
-        ownerId: userId,
-      },
+      where: projectAccessFilter(userId),
       select: {
         id: true,
         name: true,
@@ -19,9 +18,7 @@ export async function getRecentActivity(userId: string) {
 
     prisma.task.findMany({
       where: {
-        project: {
-          ownerId: userId,
-        },
+        project: projectAccessFilter(userId),
       },
       select: {
         id: true,

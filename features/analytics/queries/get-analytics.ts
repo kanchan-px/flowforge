@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
+
 export async function getAnalytics(days: 7 | 30 = 7) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -18,14 +20,10 @@ export async function getAnalytics(days: 7 | 30 = 7) {
   // FILTERS
   // --------------------------------
 
-  const projectWhere = {
-    ownerId: userId,
-  };
+  const projectWhere = projectAccessFilter(userId);
 
   const taskWhere = {
-    project: {
-      ownerId: userId,
-    },
+    project: projectAccessFilter(userId),
   };
 
   // --------------------------------
@@ -192,9 +190,7 @@ export async function getAnalytics(days: 7 | 30 = 7) {
     prisma.taskStatusHistory.findMany({
       where: {
         task: {
-          project: {
-            ownerId: userId,
-          },
+          project: projectAccessFilter(userId),
         },
       },
 
@@ -240,9 +236,7 @@ export async function getAnalytics(days: 7 | 30 = 7) {
         },
 
         task: {
-          project: {
-            ownerId: userId,
-          },
+          project: projectAccessFilter(userId),
         },
       },
 

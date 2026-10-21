@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
 
 export async function searchDashboard(query: string) {
   const session = await auth.api.getSession({
@@ -29,7 +30,7 @@ export async function searchDashboard(query: string) {
   const [projects, tasks] = await Promise.all([
     prisma.project.findMany({
       where: {
-        ownerId: session.user.id,
+        ...projectAccessFilter(session.user.id),
         name: {
           contains: trimmedQuery,
           mode: "insensitive",
@@ -48,9 +49,7 @@ export async function searchDashboard(query: string) {
 
     prisma.task.findMany({
       where: {
-        project: {
-          ownerId: session.user.id,
-        },
+        project: projectAccessFilter(session.user.id),
         OR: [
           {
             name: {
