@@ -17,6 +17,7 @@ import { CreateTaskForm } from "./create-task-form";
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface CreateTaskDialogProps {

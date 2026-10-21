@@ -119,12 +119,24 @@ export default async function TasksPage({
       break;
   }
 
-  const projects = await prisma.project.findMany({
-    where: projectAccessFilter(session.user.id),
-    orderBy: {
-      name: "asc",
+  const projectRows = await prisma.project.findMany({
+     where: projectAccessFilter(session.user.id),
+     orderBy: {
+       name: "asc",
+     },
+    include: {
+      members: {
+        select: {
+          user: { select: { id: true, name: true } },
+        },
+      },
     },
-  });
+   });
+
+  const projects = projectRows.map(({ members, ...project }) => ({
+    ...project,
+    members: members.map((member) => member.user),
+  }));
 
   const totalTasks = await prisma.task.count({
     where: {
@@ -138,6 +150,7 @@ export default async function TasksPage({
     take: PAGE_SIZE,
     include: {
       project: true,
+      assignee: { select: { id: true, name: true } },
     },
     orderBy,
   });

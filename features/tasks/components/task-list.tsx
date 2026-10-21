@@ -5,6 +5,7 @@ import { TaskStatus, TaskPriority } from "@prisma/client";
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface Task {
@@ -15,7 +16,7 @@ interface Task {
   priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
-  
+  assignee: { id: string; name: string } | null;
 }
 
 interface TaskListProps {
@@ -77,6 +78,7 @@ export function TaskList({
           priority={task.priority}
           dueDate={task.dueDate}
           projectId={task.projectId}
+          assignee={task.assignee}
           projects={projects}
         />
       ))}

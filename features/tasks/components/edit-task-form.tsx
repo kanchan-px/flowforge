@@ -11,6 +11,7 @@ import {
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +26,10 @@ import { updateTask } from "../actions/update-task";
 
 import { TaskStatus, TaskPriority } from "@prisma/client";
 
-import { toast } from "sonner";
-
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface EditTaskFormProps {
@@ -40,6 +40,7 @@ interface EditTaskFormProps {
   priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
+  assigneeId: string | null;
   projects: Project[];
   onSuccess: () => void;
 }
@@ -52,6 +53,7 @@ export function EditTaskForm({
   priority,
   dueDate,
   projectId,
+  assigneeId,
   projects,
   onSuccess,
 }: EditTaskFormProps) {
@@ -62,19 +64,45 @@ export function EditTaskForm({
     handleSubmit,
     setValue,
     watch,
+    getValues,
     reset,
     formState: { errors },
   } = useForm<CreateTaskValues>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
-  name,
-  description: description ?? "",
-  status: status as CreateTaskValues["status"],
-  priority: priority as CreateTaskValues["priority"],
-  dueDate: dueDate ? dueDate.toISOString().split("T")[0] : "",
-  projectId,
-},
+      name,
+      description: description ?? "",
+      status: status as CreateTaskValues["status"],
+      priority: priority as CreateTaskValues["priority"],
+      dueDate: dueDate ? dueDate.toISOString().split("T")[0] : "",
+      projectId,
+      assigneeId,
+    },
   });
+
+  const selectedProjectId = watch("projectId");
+  const selectedAssigneeId = watch("assigneeId");
+
+  // The assignee list always comes from the currently selected project.
+  const projectMembers =
+    projects.find((project) => project.id === selectedProjectId)?.members ?? [];
+
+  // If the user moves the task to another project, drop the assignee
+  // unless they also belong to that project.
+  function clearAssigneeIfNotMember(nextProjectId: string) {
+    const currentAssigneeId = getValues("assigneeId");
+
+    if (!currentAssigneeId) {
+      return;
+    }
+
+    const nextMembers =
+      projects.find((project) => project.id === nextProjectId)?.members ?? [];
+
+    if (!nextMembers.some((member) => member.id === currentAssigneeId)) {
+      setValue("assigneeId", null);
+    }
+  }
 
   function onSubmit(values: CreateTaskValues) {
     startTransition(async () => {
@@ -127,6 +155,7 @@ export function EditTaskForm({
               setValue("projectId", value, {
                 shouldValidate: true,
               });
+              clearAssigneeIfNotMember(value);
             }
           }}
         >
@@ -215,6 +244,36 @@ export function EditTaskForm({
             <SelectItem value="MEDIUM">Medium</SelectItem>
 
             <SelectItem value="HIGH">High</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="mb-2 block text-sm font-semibold">Assignee</label>
+
+        <Select
+          value={selectedAssigneeId ?? "unassigned"}
+          onValueChange={(value) => {
+            if (value) {
+              setValue("assigneeId", value === "unassigned" ? null : value);
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue>
+              {projectMembers.find((member) => member.id === selectedAssigneeId)
+                ?.name ?? "Unassigned"}
+            </SelectValue>
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
+
+            {projectMembers.map((member) => (
+              <SelectItem key={member.id} value={member.id}>
+                {member.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

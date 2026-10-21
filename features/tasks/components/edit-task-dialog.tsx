@@ -18,6 +18,7 @@ import { EditTaskForm } from "./edit-task-form";
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface EditTaskDialogProps {
@@ -28,6 +29,7 @@ interface EditTaskDialogProps {
   priority: TaskPriority;
   dueDate: Date | null;
   projectId: string;
+  assigneeId: string | null;
   projects: Project[];
 }
 

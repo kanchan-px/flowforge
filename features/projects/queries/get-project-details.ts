@@ -11,6 +11,9 @@ export async function getProjectDetails(
     },
     include: {
       tasks: {
+        include: {
+          assignee: { select: { id: true, name: true } },
+        },
         orderBy: {
           createdAt: "desc",
         },

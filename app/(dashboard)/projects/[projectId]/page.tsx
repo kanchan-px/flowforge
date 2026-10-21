@@ -156,8 +156,13 @@ export default async function ProjectDetailsPage({
                 {
                   id: project.id,
                   name: project.name,
+                  members: members.map((member) => ({
+                    id: member.user.id,
+                    name: member.user.name,
+                  })),
                 },
               ]}
+              assignee={task.assignee}
             />
           ))}
         </div>

@@ -4,10 +4,10 @@ import { EditTaskDialog } from "./edit-task-dialog";
 import { DeleteTaskButton } from "./delete-task-button";
 import { TaskStatus, TaskPriority } from "@prisma/client";
 
-
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface TaskCardProps {
@@ -16,12 +16,13 @@ interface TaskCardProps {
   description: string | null;
 
   status: TaskStatus;
-priority: TaskPriority;
+  priority: TaskPriority;
 
   dueDate: Date | null;
 
   projectId: string;
   projects: Project[];
+  assignee?: { id: string; name: string } | null;
 }
 
 function getStatusBadge(status: string) {
@@ -89,6 +90,7 @@ export function TaskCard({
   dueDate,
   projectId,
   projects,
+  assignee = null,
 }: TaskCardProps) {
   const statusBadge = getStatusBadge(status);
   const priorityBadge = getPriorityBadge(priority);
@@ -116,6 +118,7 @@ export function TaskCard({
             priority={priority}
             dueDate={dueDate}
             projectId={projectId}
+            assigneeId={assignee?.id ?? null}
             projects={projects}
           />
 
@@ -139,12 +142,23 @@ export function TaskCard({
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 flex items-center justify-between">
         <span
           className={`rounded-full px-3 py-1 text-xs font-medium ${priorityBadge.className}`}
         >
           {priorityBadge.label}
         </span>
+
+        {assignee ? (
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+              {assignee.name.charAt(0).toUpperCase()}
+            </span>
+            {assignee.name}
+          </div>
+        ) : (
+          <span className="text-sm text-slate-400">Unassigned</span>
+        )}
       </div>
     </div>
   );

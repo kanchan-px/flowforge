@@ -28,6 +28,7 @@ import { toast } from "sonner";
 interface Project {
   id: string;
   name: string;
+  members: { id: string; name: string }[];
 }
 
 interface CreateTaskFormProps {
@@ -59,6 +60,7 @@ const {
   priority: "MEDIUM",
   dueDate: "",
   projectId: projectId ?? projects[0]?.id ?? "",
+  assigneeId: null,
 },
 });
 
@@ -78,6 +80,30 @@ useEffect(() => {
         toast.error("Couldn't create the task. Please try again.");
       }
     });
+  }
+
+    const selectedProjectId = watch("projectId");
+  const selectedAssigneeId = watch("assigneeId");
+
+  // The assignee list always comes from the currently selected project.
+  const projectMembers =
+    projects.find((project) => project.id === selectedProjectId)?.members ?? [];
+
+  // If the user switches project, drop the assignee unless they also
+  // belong to the new project.
+  function clearAssigneeIfNotMember(nextProjectId: string) {
+    const currentAssigneeId = getValues("assigneeId");
+
+    if (!currentAssigneeId) {
+      return;
+    }
+
+    const nextMembers =
+      projects.find((project) => project.id === nextProjectId)?.members ?? [];
+
+    if (!nextMembers.some((member) => member.id === currentAssigneeId)) {
+      setValue("assigneeId", null);
+    }
   }
 
   return (
@@ -119,6 +145,7 @@ useEffect(() => {
       onValueChange={(value) => {
         if (value) {
           setValue("projectId", value);
+          clearAssigneeIfNotMember(value);
         }
       }}
     >
@@ -197,6 +224,36 @@ useEffect(() => {
         </Select>
       </div>
 
+            <div>
+        <label className="mb-2 block text-sm font-semibold">Assignee</label>
+
+        <Select
+          value={selectedAssigneeId ?? "unassigned"}
+          onValueChange={(value) => {
+            if (value) {
+              setValue("assigneeId", value === "unassigned" ? null : value);
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue>
+              {projectMembers.find((member) => member.id === selectedAssigneeId)
+                ?.name ?? "Unassigned"}
+            </SelectValue>
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="unassigned">Unassigned</SelectItem>
+
+            {projectMembers.map((member) => (
+              <SelectItem key={member.id} value={member.id}>
+                {member.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
       <div>
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
 
