@@ -26,3 +26,18 @@ export async function hasProjectAccess(userId: string, projectId: string) {
 
   return project !== null;
 }
+
+/**
+ * True only if the user has a ProjectMember row for this project.
+ * Used to validate task assignees.
+ */
+export async function isProjectMember(userId: string, projectId: string) {
+  const membership = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: { userId, projectId },
+    },
+    select: { id: true },
+  });
+
+  return membership !== null;
+}
