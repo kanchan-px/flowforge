@@ -25,6 +25,8 @@ import { updateTask } from "../actions/update-task";
 
 import { TaskStatus, TaskPriority } from "@prisma/client";
 
+import { toast } from "sonner";
+
 interface Project {
   id: string;
   name: string;
@@ -76,9 +78,14 @@ export function EditTaskForm({
 
   function onSubmit(values: CreateTaskValues) {
     startTransition(async () => {
-      await updateTask(id, values);
-      reset();
-      onSuccess();
+      try {
+        await updateTask(id, values);
+        reset();
+        onSuccess();
+      } catch (error) {
+        console.error("Failed to update task:", error);
+        toast.error("Couldn't save your changes. Please try again.");
+      }
     });
   }
 

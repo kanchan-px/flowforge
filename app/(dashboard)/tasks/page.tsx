@@ -8,6 +8,8 @@ import { CreateTaskDialog } from "@/features/tasks/components/create-task-dialog
 import { TaskFilters } from "@/features/tasks/components/task-filters";
 import { TaskList } from "@/features/tasks/components/task-list";
 
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
+
 interface TasksPageProps {
   searchParams: Promise<{
     status?: string;
@@ -52,9 +54,7 @@ export default async function TasksPage({
   }
 
   const where: Prisma.TaskWhereInput = {
-    project: {
-      ownerId: session.user.id,
-    },
+    project: projectAccessFilter(session.user.id),
   };
 
   if (status) {
@@ -120,9 +120,7 @@ export default async function TasksPage({
   }
 
   const projects = await prisma.project.findMany({
-    where: {
-      ownerId: session.user.id,
-    },
+    where: projectAccessFilter(session.user.id),
     orderBy: {
       name: "asc",
     },
@@ -130,9 +128,7 @@ export default async function TasksPage({
 
   const totalTasks = await prisma.task.count({
     where: {
-      project: {
-        ownerId: session.user.id,
-      },
+      project: projectAccessFilter(session.user.id),
     },
   });
 

@@ -8,6 +8,8 @@ import { prisma } from "@/lib/prisma";
 
 import { createNotification } from "@/features/notifications/actions/create-notification";
 
+import { hasProjectAccess } from "@/features/projects/utils/project-access";
+
 export async function deleteTask(id: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -30,7 +32,9 @@ export async function deleteTask(id: string) {
     throw new Error("Task not found");
   }
 
-  if (task.project.ownerId !== session.user.id) {
+  const hasAccess = await hasProjectAccess(session.user.id, task.projectId);
+
+  if (!hasAccess) {
     throw new Error("Unauthorized");
   }
 

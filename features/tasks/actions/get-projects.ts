@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
+
 export async function getProjects() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -15,9 +17,7 @@ export async function getProjects() {
   }
 
   return prisma.project.findMany({
-    where: {
-      ownerId: session.user.id,
-    },
+    where: projectAccessFilter(session.user.id),
     orderBy: {
       name: "asc",
     },

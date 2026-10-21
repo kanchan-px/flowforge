@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 import { headers } from "next/headers";
+import { projectAccessFilter } from "@/features/projects/utils/project-access";
 
 import { ProjectCard } from "./project-card";
 
@@ -15,13 +16,7 @@ export async function ProjectList() {
   }
 
   const projects = await prisma.project.findMany({
-    where: {
-      ownerId: session.user.id,
-      OR: [
-       { ownerId: session.user.id },
-       { members: { some: { userId: session.user.id } } },
-      ],
-    },
+    where: projectAccessFilter(session.user.id),
     orderBy: {
       createdAt: "desc",
     },
@@ -31,7 +26,7 @@ export async function ProjectList() {
       description: true,
       createdAt: true,
       updatedAt: true,
-
+      ownerId: true,
       _count: {
         select: {
           tasks: true,
@@ -63,6 +58,7 @@ export async function ProjectList() {
           createdAt={project.createdAt}
           updatedAt={project.updatedAt}
           taskCount={project._count.tasks}
+          canManage={project.ownerId === session.user.id}
         />
       ))}
     </div>

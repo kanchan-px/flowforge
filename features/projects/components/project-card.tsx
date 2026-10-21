@@ -15,6 +15,7 @@ interface ProjectCardProps {
   createdAt: Date;
   updatedAt: Date;
   taskCount: number;
+  canManage: boolean;
 }
 
 export function ProjectCard({
@@ -24,6 +25,7 @@ export function ProjectCard({
   createdAt,
   updatedAt,
   taskCount,
+  canManage = true,
 }: ProjectCardProps) {
   return (
     <div className="group flex items-start justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-blue-200 hover:shadow-md">
@@ -72,16 +74,18 @@ export function ProjectCard({
         </div>
       </Link>
 
-      {/* Edit / Delete */}
-      <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-        <EditProjectDialog
-          id={id}
-          name={name}
-          description={description}
-        />
+{/* Edit / Delete (owner only) */}
+     {canManage && (
+        <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <EditProjectDialog
+            id={id}
+            name={name}
+            description={description}
+          />
 
-        <DeleteProjectButton id={id} />
-      </div>
+          <DeleteProjectButton id={id} />
+       </div>
+      )}
     </div>
   );
 }

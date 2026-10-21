@@ -23,6 +23,8 @@ import {
 
 import { createTask } from "../actions/create-task";
 
+import { toast } from "sonner";
+
 interface Project {
   id: string;
   name: string;
@@ -68,8 +70,13 @@ useEffect(() => {
 
   function onSubmit(values: CreateTaskValues) {
     startTransition(async () => {
-      await createTask(values);
-      onSuccess();
+      try {
+        await createTask(values);
+        onSuccess();
+      } catch (error) {
+        console.error("Failed to create task:", error);
+        toast.error("Couldn't create the task. Please try again.");
+      }
     });
   }
 

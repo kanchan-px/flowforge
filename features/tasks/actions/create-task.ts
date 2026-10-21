@@ -13,6 +13,8 @@ import {
   type CreateTaskValues,
 } from "../schemas/create-task-schema";
 
+import { hasProjectAccess } from "@/features/projects/utils/project-access";
+
 export async function createTask(values: CreateTaskValues) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -24,33 +26,40 @@ export async function createTask(values: CreateTaskValues) {
 
   const validated = createTaskSchema.parse(values);
 
-const task = await prisma.task.create({
-  data: {
-    name: validated.name,
-    description: validated.description,
-    status: validated.status,
-    priority: validated.priority,
-    dueDate: validated.dueDate
-      ? new Date(validated.dueDate)
-      : null,
-    projectId: validated.projectId,
-  },
-});
+  const hasAccess = await hasProjectAccess(
+    session.user.id,
+    validated.projectId,
+  );
 
-await prisma.taskStatusHistory.create({
-  data: {
-    taskId: task.id,
-    fromStatus: null,
-    toStatus: task.status,
-  },
-});
+  if (!hasAccess) {
+    throw new Error("Unauthorized");
+  }
 
-await createNotification({
-  userId: session.user.id,
-  type: "TASK_CREATED",
-  title: "Task created",
-  message: `You created the task "${task.name}".`,
-});
+  const task = await prisma.task.create({
+    data: {
+      name: validated.name,
+      description: validated.description,
+      status: validated.status,
+      priority: validated.priority,
+      dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
+      projectId: validated.projectId,
+    },
+  });
+
+  await prisma.taskStatusHistory.create({
+    data: {
+      taskId: task.id,
+      fromStatus: null,
+      toStatus: task.status,
+    },
+  });
+
+  await createNotification({
+    userId: session.user.id,
+    type: "TASK_CREATED",
+    title: "Task created",
+    message: `You created the task "${task.name}".`,
+  });
 
   revalidatePath("/tasks");
   revalidatePath("/workspace");

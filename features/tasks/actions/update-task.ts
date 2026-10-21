@@ -13,6 +13,8 @@ import {
   type CreateTaskValues,
 } from "../schemas/create-task-schema";
 
+import { hasProjectAccess } from "@/features/projects/utils/project-access";
+
 export async function updateTask(id: string, values: CreateTaskValues) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -37,8 +39,23 @@ export async function updateTask(id: string, values: CreateTaskValues) {
     throw new Error("Task not found");
   }
 
-  if (task.project.ownerId !== session.user.id) {
+  // Must have access to the task's current project...
+  const hasAccess = await hasProjectAccess(session.user.id, task.projectId);
+
+  if (!hasAccess) {
     throw new Error("Unauthorized");
+  }
+
+  // ...and to the destination project if the task is being moved.
+  if (validated.projectId !== task.projectId) {
+    const canMoveHere = await hasProjectAccess(
+      session.user.id,
+      validated.projectId,
+    );
+
+    if (!canMoveHere) {
+      throw new Error("Unauthorized");
+    }
   }
 
   // Store whether the task's status actually changed.
