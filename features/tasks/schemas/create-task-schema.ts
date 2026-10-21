@@ -26,6 +26,7 @@ export const createTaskSchema = z.object({
   dueDate: z.string().optional(),
 
   projectId: z.string(),
+  assigneeId: z.string().nullable().optional(),
 });
 
 export type CreateTaskValues = z.infer<typeof createTaskSchema>;

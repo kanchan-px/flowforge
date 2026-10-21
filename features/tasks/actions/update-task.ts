@@ -13,7 +13,10 @@ import {
   type CreateTaskValues,
 } from "../schemas/create-task-schema";
 
-import { hasProjectAccess } from "@/features/projects/utils/project-access";
+import {
+  hasProjectAccess,
+  isProjectMember,
+} from "@/features/projects/utils/project-access";
 
 export async function updateTask(id: string, values: CreateTaskValues) {
   const session = await auth.api.getSession({
@@ -58,6 +61,21 @@ export async function updateTask(id: string, values: CreateTaskValues) {
     }
   }
 
+  const assigneeId = validated.assigneeId ?? null;
+
+  if (assigneeId) {
+    const assigneeIsMember = await isProjectMember(
+      assigneeId,
+      validated.projectId,
+    );
+
+    if (!assigneeIsMember) {
+      throw new Error("The assignee must be a member of this project.");
+    }
+  }
+
+  const assigneeChanged = (task.assigneeId ?? null) !== assigneeId;
+
   // Store whether the task's status actually changed.
   const statusChanged = task.status !== validated.status;
 
@@ -71,10 +89,9 @@ export async function updateTask(id: string, values: CreateTaskValues) {
       description: validated.description,
       status: validated.status,
       priority: validated.priority,
-      dueDate: validated.dueDate
-        ? new Date(validated.dueDate)
-        : null,
+      dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
       projectId: validated.projectId,
+      assigneeId,
     },
   });
 
@@ -98,6 +115,23 @@ export async function updateTask(id: string, values: CreateTaskValues) {
       message: `You completed the task "${validated.name}".`,
     });
   }
+
+  if (assigneeChanged && assigneeId && assigneeId !== session.user.id) {
+    try {
+      await createNotification({
+        userId: assigneeId,
+        type: "TASK_UPDATED",
+        title: "Task assigned to you",
+        message: `${session.user.name} assigned you the task "${validated.name}".`,
+        taskId: task.id,
+        projectId: validated.projectId,
+      });
+    } catch (error) {
+      console.error("Failed to create assignment notification:", error);
+    }
+  }
+
+  revalidatePath("/tasks");
 
   revalidatePath("/tasks");
 }

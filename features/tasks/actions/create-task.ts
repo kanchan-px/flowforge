@@ -13,7 +13,10 @@ import {
   type CreateTaskValues,
 } from "../schemas/create-task-schema";
 
-import { hasProjectAccess } from "@/features/projects/utils/project-access";
+import {
+  hasProjectAccess,
+  isProjectMember,
+} from "@/features/projects/utils/project-access";
 
 export async function createTask(values: CreateTaskValues) {
   const session = await auth.api.getSession({
@@ -35,6 +38,19 @@ export async function createTask(values: CreateTaskValues) {
     throw new Error("Unauthorized");
   }
 
+  const assigneeId = validated.assigneeId ?? null;
+
+  if (assigneeId) {
+    const assigneeIsMember = await isProjectMember(
+      assigneeId,
+      validated.projectId,
+    );
+
+    if (!assigneeIsMember) {
+      throw new Error("The assignee must be a member of this project.");
+    }
+  }
+
   const task = await prisma.task.create({
     data: {
       name: validated.name,
@@ -43,6 +59,7 @@ export async function createTask(values: CreateTaskValues) {
       priority: validated.priority,
       dueDate: validated.dueDate ? new Date(validated.dueDate) : null,
       projectId: validated.projectId,
+      assigneeId,
     },
   });
 
@@ -60,6 +77,21 @@ export async function createTask(values: CreateTaskValues) {
     title: "Task created",
     message: `You created the task "${task.name}".`,
   });
+
+  if (assigneeId && assigneeId !== session.user.id) {
+  try {
+    await createNotification({
+      userId: assigneeId,
+      type: "TASK_UPDATED",
+      title: "Task assigned to you",
+      message: `${session.user.name} assigned you the task "${task.name}".`,
+      taskId: task.id,
+      projectId: task.projectId,
+    });
+  } catch (error) {
+    console.error("Failed to create assignment notification:", error);
+  }
+}
 
   revalidatePath("/tasks");
   revalidatePath("/workspace");
