@@ -53,7 +53,7 @@ function getStatusBadge(status: string) {
   }
 }
 
-function getPriorityBadge(priority: string) {
+export function getPriorityBadge(priority: string) {
   switch (priority) {
     case "LOW":
       return {

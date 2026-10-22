@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import Link from "next/link";
 
 import { auth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { getProjectDetails } from "@/features/projects/queries/get-project-details";
 
 import { TaskCard } from "@/features/tasks/components/task-card";
+import { KanbanBoard } from "@/features/tasks/components/kanban-board";
 import { CreateTaskDialog } from "@/features/tasks/components/create-task-dialog";
 
 import { getProjectMembers } from "@/features/members/queries/get-project-members";
@@ -17,13 +20,18 @@ interface ProjectDetailsPageProps {
   params: Promise<{
     projectId: string;
   }>;
+  searchParams: Promise<{
+    view?: string;
+  }>;
 }
 
 export default async function ProjectDetailsPage({
   params,
+  searchParams,
 }: ProjectDetailsPageProps) {
   const { projectId } = await params;
-
+  const { view } = await searchParams;
+  const isBoardView = view === "board";
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -57,6 +65,17 @@ export default async function ProjectDetailsPage({
     (task) =>
       task.dueDate && task.dueDate < new Date() && task.status !== "DONE",
   ).length;
+
+    const projectsForForms = [
+    {
+      id: project.id,
+      name: project.name,
+      members: members.map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+      })),
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -123,7 +142,7 @@ export default async function ProjectDetailsPage({
       </div>
 
       {/* Tasks Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Tasks</h2>
 
@@ -132,13 +151,44 @@ export default async function ProjectDetailsPage({
           </p>
         </div>
 
-        <CreateTaskDialog projectId={project.id} />
+        <div className="flex items-center gap-3">
+          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 text-sm font-medium">
+            <Link
+              href={`/projects/${project.id}`}
+              className={cn(
+                "rounded-lg px-3 py-1.5 transition",
+                !isBoardView
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-600 hover:bg-slate-100",
+              )}
+            >
+              List
+            </Link>
+            <Link
+              href={`/projects/${project.id}?view=board`}
+              className={cn(
+                "rounded-lg px-3 py-1.5 transition",
+                isBoardView
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-600 hover:bg-slate-100",
+              )}
+            >
+              Board
+            </Link>
+          </div>
+
+          <CreateTaskDialog projectId={project.id} />
+        </div>
       </div>
 
-      {/* Tasks */}
-      {project.tasks.length === 0 ? (
+            {/* Tasks */}
+      {isBoardView ? (
+        <KanbanBoard tasks={project.tasks} projects={projectsForForms} />
+      ) : project.tasks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <h3 className="text-lg font-semibold text-slate-900">No tasks yet</h3>
+          <h3 className="text-lg font-semibold text-slate-900">
+            No tasks yet
+          </h3>
 
           <p className="mt-2 text-sm text-slate-500">
             Create your first task for this project.
@@ -156,16 +206,7 @@ export default async function ProjectDetailsPage({
               priority={task.priority}
               dueDate={task.dueDate}
               projectId={task.projectId}
-              projects={[
-                {
-                  id: project.id,
-                  name: project.name,
-                  members: members.map((member) => ({
-                    id: member.user.id,
-                    name: member.user.name,
-                  })),
-                },
-              ]}
+              projects={projectsForForms}
               assignee={task.assignee}
             />
           ))}
