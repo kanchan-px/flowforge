@@ -199,6 +199,14 @@ export default async function TasksPage({
     );
   }
 
+  // Worked out on the server so the cards don't read the clock themselves.
+  const currentTime = new Date();
+
+  const tasksForList = tasks.map((task) => ({
+    ...task,
+    isPastDue: task.dueDate !== null && task.dueDate < currentTime,
+  }));
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -216,7 +224,7 @@ export default async function TasksPage({
       <TaskFilters projects={projects} />
 
       <TaskList
-        tasks={tasks}
+        tasks={tasksForList}
         projects={projects}
         hasFilters={hasFilters}
         totalTasks={totalTasks}

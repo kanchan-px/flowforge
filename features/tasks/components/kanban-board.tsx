@@ -38,6 +38,7 @@ export interface BoardTask {
   dueDate: Date | null;
   projectId: string;
   assignee: { id: string; name: string } | null;
+  isPastDue: boolean;
 }
 
 const COLUMNS: { status: TaskStatus; label: string; dot: string }[] = [
@@ -45,6 +46,10 @@ const COLUMNS: { status: TaskStatus; label: string; dot: string }[] = [
   { status: "IN_PROGRESS", label: "In Progress", dot: "bg-amber-500" },
   { status: "DONE", label: "Done", dot: "bg-emerald-500" },
 ];
+
+function isOverdue(task: BoardTask) {
+  return task.isPastDue && task.status !== "DONE";
+}
 
 /** What a card looks like (also used for the floating copy while dragging). */
 function CardBody({ task }: { task: BoardTask }) {
@@ -62,13 +67,19 @@ function CardBody({ task }: { task: BoardTask }) {
         </span>
 
         {task.dueDate && (
-          <span className="flex items-center gap-1 text-xs text-slate-500">
+          <span
+            className={cn(
+              "flex items-center gap-1 text-xs",
+              isOverdue(task) ? "font-medium text-red-600" : "text-slate-500",
+            )}
+          >
             <Calendar className="h-3 w-3" />
             {task.dueDate.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
               timeZone: "UTC",
             })}
+            {isOverdue(task) && " . Overdue"}
           </span>
         )}
 
@@ -100,7 +111,8 @@ function DraggableCard({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-xl border border-slate-200 bg-white p-3 shadow-sm",
+        "rounded-xl border bg-white p-3 shadow-sm",
+        isOverdue(task) ? "border-red-200" : "border-slate-200",
         isDragging && "opacity-40",
       )}
     >

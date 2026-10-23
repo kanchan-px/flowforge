@@ -1,5 +1,5 @@
 import { Calendar, FolderKanban } from "lucide-react";
-
+import { cn } from "@/lib/utils";
 import { EditTaskDialog } from "./edit-task-dialog";
 import { DeleteTaskButton } from "./delete-task-button";
 import { TaskStatus, TaskPriority } from "@prisma/client";
@@ -23,6 +23,7 @@ interface TaskCardProps {
   projectId: string;
   projects: Project[];
   assignee?: { id: string; name: string } | null;
+  isPastDue: boolean;
 }
 
 function getStatusBadge(status: string) {
@@ -91,15 +92,22 @@ export function TaskCard({
   projectId,
   projects,
   assignee = null,
+  isPastDue = false,
 }: TaskCardProps) {
   const statusBadge = getStatusBadge(status);
   const priorityBadge = getPriorityBadge(priority);
+  const isOverdue = isPastDue && status !== "DONE";
 
   const projectName =
     projects.find((project) => project.id === projectId)?.name ?? "Unknown Project";
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div
+      className={cn(
+        "rounded-2xl border bg-white p-6 shadow-sm",
+        isOverdue ? "border-red-200" : "border-slate-200",
+      )}
+    >
       <div className="flex items-start justify-between">
         <h3 className="text-lg font-bold">{name}</h3>
 
@@ -136,10 +144,20 @@ export function TaskCard({
           {projectName}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4" />
-          {dueDate ? dueDate.toLocaleDateString() : "No due date"}
-        </div>
+        <div
+          className={cn(
+            "flex items-center gap-2",
+            isOverdue && "font-medium text-red-600",
+          )}
+        >
+           <Calendar className="h-4 w-4" />
+           {dueDate ? dueDate.toLocaleDateString() : "No due date"}
+          {isOverdue && (
+            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+              Overdue
+            </span>
+          )}
+         </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between">

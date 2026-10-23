@@ -77,6 +77,15 @@ export default async function ProjectDetailsPage({
     },
   ];
 
+  // Worked out on the server so the cards don't read the clock themselves.
+  const currentTime = new Date();
+
+  const tasksForViews = project.tasks.map((task) => ({
+    ...task,
+    isPastDue: task.dueDate !== null && task.dueDate < currentTime,
+  }));
+
+
   return (
     <div className="space-y-8">
       {/* Project Header */}
@@ -181,9 +190,9 @@ export default async function ProjectDetailsPage({
         </div>
       </div>
 
-            {/* Tasks */}
+      {/* Tasks */}
       {isBoardView ? (
-        <KanbanBoard tasks={project.tasks} projects={projectsForForms} />
+        <KanbanBoard tasks={tasksForViews} projects={projectsForForms} />
       ) : project.tasks.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <h3 className="text-lg font-semibold text-slate-900">
@@ -196,7 +205,7 @@ export default async function ProjectDetailsPage({
         </div>
       ) : (
         <div className="space-y-4">
-          {project.tasks.map((task) => (
+          {tasksForViews.map((task) => (
             <TaskCard
               key={task.id}
               id={task.id}
@@ -208,6 +217,7 @@ export default async function ProjectDetailsPage({
               projectId={task.projectId}
               projects={projectsForForms}
               assignee={task.assignee}
+              isPastDue={task.isPastDue}
             />
           ))}
         </div>
