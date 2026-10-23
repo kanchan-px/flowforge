@@ -20,6 +20,7 @@ import type { TaskPriority, TaskStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 import { updateTaskStatus } from "../actions/update-task-status";
+import { TaskCommentsDialog } from "@/features/comments/components/task-comments-dialog";
 import { EditTaskDialog } from "./edit-task-dialog";
 import { getPriorityBadge } from "./task-card";
 
@@ -39,6 +40,7 @@ export interface BoardTask {
   projectId: string;
   assignee: { id: string; name: string } | null;
   isPastDue: boolean;
+  commentCount: number;
 }
 
 const COLUMNS: { status: TaskStatus; label: string; dot: string }[] = [
@@ -133,17 +135,26 @@ function DraggableCard({
           <CardBody task={task} />
         </div>
 
-        <EditTaskDialog
-          id={task.id}
-          name={task.name}
-          description={task.description}
-          status={task.status}
-          priority={task.priority}
-          dueDate={task.dueDate}
-          projectId={task.projectId}
-          assigneeId={task.assignee?.id ?? null}
-          projects={projects}
-        />
+                <div className="flex shrink-0 items-center gap-1">
+          <TaskCommentsDialog
+            taskId={task.id}
+            taskName={task.name}
+            commentCount={task.commentCount}
+            compact
+          />
+
+          <EditTaskDialog
+            id={task.id}
+            name={task.name}
+            description={task.description}
+            status={task.status}
+            priority={task.priority}
+            dueDate={task.dueDate}
+            projectId={task.projectId}
+            assigneeId={task.assignee?.id ?? null}
+            projects={projects}
+          />
+        </div>
       </div>
     </div>
   );

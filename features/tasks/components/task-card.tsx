@@ -1,6 +1,7 @@
 import { Calendar, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditTaskDialog } from "./edit-task-dialog";
+import { TaskCommentsDialog } from "@/features/comments/components/task-comments-dialog";
 import { DeleteTaskButton } from "./delete-task-button";
 import { TaskStatus, TaskPriority } from "@prisma/client";
 
@@ -24,6 +25,7 @@ interface TaskCardProps {
   projects: Project[];
   assignee?: { id: string; name: string } | null;
   isPastDue: boolean;
+  commentCount: number;
 }
 
 function getStatusBadge(status: string) {
@@ -93,6 +95,7 @@ export function TaskCard({
   projects,
   assignee = null,
   isPastDue = false,
+  commentCount = 0,
 }: TaskCardProps) {
   const statusBadge = getStatusBadge(status);
   const priorityBadge = getPriorityBadge(priority);
@@ -117,6 +120,11 @@ export function TaskCard({
           >
             {statusBadge.label}
           </span>
+          <TaskCommentsDialog
+            taskId={id}
+            taskName={name}
+            commentCount={commentCount}
+          />
 
           <EditTaskDialog
             id={id}

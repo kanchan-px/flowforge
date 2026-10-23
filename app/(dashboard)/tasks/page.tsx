@@ -151,6 +151,7 @@ export default async function TasksPage({
     include: {
       project: true,
       assignee: { select: { id: true, name: true } },
+      _count: { select: { comments: true } },
     },
     orderBy,
   });
@@ -202,10 +203,11 @@ export default async function TasksPage({
   // Worked out on the server so the cards don't read the clock themselves.
   const currentTime = new Date();
 
-  const tasksForList = tasks.map((task) => ({
-    ...task,
-    isPastDue: task.dueDate !== null && task.dueDate < currentTime,
-  }));
+  const tasksForList = tasks.map(({ _count, ...task }) => ({
+     ...task,
+     isPastDue: task.dueDate !== null && task.dueDate < currentTime,
+    commentCount: _count.comments,
+   }));
 
   return (
     <div className="space-y-8">

@@ -18,6 +18,7 @@ interface Task {
   projectId: string;
   assignee: { id: string; name: string } | null;
   isPastDue: boolean;
+  commentCount: number;
 }
 
 interface TaskListProps {
@@ -82,6 +83,7 @@ export function TaskList({
           assignee={task.assignee}
           projects={projects}
           isPastDue={task.isPastDue}
+          commentCount={task.commentCount}
         />
       ))}
     </div>

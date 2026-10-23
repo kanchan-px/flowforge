@@ -13,6 +13,7 @@ export async function getProjectDetails(
       tasks: {
         include: {
           assignee: { select: { id: true, name: true } },
+          _count: { select: { comments: true } },
         },
         orderBy: {
           createdAt: "desc",

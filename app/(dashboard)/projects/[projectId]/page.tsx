@@ -80,10 +80,11 @@ export default async function ProjectDetailsPage({
   // Worked out on the server so the cards don't read the clock themselves.
   const currentTime = new Date();
 
-  const tasksForViews = project.tasks.map((task) => ({
-    ...task,
-    isPastDue: task.dueDate !== null && task.dueDate < currentTime,
-  }));
+  const tasksForViews = project.tasks.map(({ _count, ...task }) => ({
+     ...task,
+     isPastDue: task.dueDate !== null && task.dueDate < currentTime,
+    commentCount: _count.comments,
+   }));
 
 
   return (
@@ -218,6 +219,7 @@ export default async function ProjectDetailsPage({
               projects={projectsForForms}
               assignee={task.assignee}
               isPastDue={task.isPastDue}
+              commentCount={task.commentCount}
             />
           ))}
         </div>

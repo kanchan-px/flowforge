@@ -7,6 +7,7 @@ import {
   Check,
   Clock,
   FolderKanban,
+  MessageSquare,
   UserCheck,
   UserPlus,
   UserX,
@@ -102,6 +103,9 @@ function getNotificationIcon(type: string) {
 
     case "MEMBER_ROLE_CHANGED":
       return <UserCheck className="h-4 w-4 text-blue-600" />;
+
+    case "TASK_COMMENTED":
+      return <MessageSquare className="h-4 w-4 text-blue-600" />;
 
     default:
       return <Bell className="h-4 w-4 text-slate-600" />;
