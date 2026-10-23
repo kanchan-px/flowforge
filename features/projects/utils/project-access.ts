@@ -41,3 +41,29 @@ export async function isProjectMember(userId: string, projectId: string) {
 
   return membership !== null;
 }
+
+/**
+ * True if the user is the project's owner or an admin, the people
+ * who can moderate (for example, delete other people's comments).
+ */
+export async function isProjectManager(userId: string, projectId: string) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      ownerId: true,
+      members: { where: { userId }, select: { role: true } },
+    },
+  });
+
+  if (!project) {
+    return false;
+  }
+
+  if (project.ownerId === userId) {
+    return true;
+  }
+
+  const role = project.members[0]?.role;
+
+  return role === "OWNER" || role === "ADMIN";
+}
