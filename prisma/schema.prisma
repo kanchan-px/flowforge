@@ -115,6 +115,7 @@ model Task {
   assignee    User?   @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   notifications Notification[]
   statusHistory TaskStatusHistory[]
+  comments      Comment[]
 
   @@index([assigneeId])
   @@map("task")
@@ -135,6 +136,22 @@ model TaskStatusHistory {
   @@index([changedAt])
   @@index([toStatus])
   @@map("task_status_history")
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+  createdAt DateTime  @default(now())
+  editedAt  DateTime?
+
+  taskId    String
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  authorId  String?
+  author    User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@map("comment")
 }
 
 model Notification {
@@ -175,6 +192,7 @@ enum NotificationType {
   INVITATION_DECLINED
   MEMBER_REMOVED
   MEMBER_ROLE_CHANGED
+  TASK_COMMENTED
 }
 
 model User {
@@ -198,7 +216,7 @@ model User {
   projectMemberships ProjectMember[]
   assignedTasks      Task[] @relation("TaskAssignee")
   sentInvitations    Invitation[]
-
+  comments           Comment[]
 
   @@map("user")
 }
