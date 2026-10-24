@@ -80,6 +80,7 @@ model Project {
   notifications Notification[]
   members     ProjectMember[]
   invitations   Invitation[]
+  activities    ActivityLog[]
 
   @@map("project")
 }
@@ -116,6 +117,7 @@ model Task {
   notifications Notification[]
   statusHistory TaskStatusHistory[]
   comments      Comment[]
+  activities    ActivityLog[]
 
   @@index([assigneeId])
   @@map("task")
@@ -152,6 +154,49 @@ model Comment {
 
   @@index([taskId, createdAt])
   @@map("comment")
+}
+
+enum ActivityType {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_DELETED
+  TASK_STATUS_CHANGED
+  TASK_ASSIGNED
+  TASK_UNASSIGNED
+  TASK_COMMENTED
+  MEMBER_INVITED
+  MEMBER_JOINED
+  MEMBER_REMOVED
+  MEMBER_LEFT
+  MEMBER_ROLE_CHANGED
+}
+
+model ActivityLog {
+  id        String       @id @default(cuid())
+  type      ActivityType
+  createdAt DateTime     @default(now())
+
+  // Short text copies of names, saved at the moment of the event
+  taskName   String?
+  targetName String?
+  fromValue  String?
+  toValue    String?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([taskId])
+  @@index([actorId])
+  @@map("activity_log")
 }
 
 model Notification {
@@ -217,6 +262,7 @@ model User {
   assignedTasks      Task[] @relation("TaskAssignee")
   sentInvitations    Invitation[]
   comments           Comment[]
+  activities         ActivityLog[]
 
   @@map("user")
 }
