@@ -16,6 +16,9 @@ import { InviteMemberDialog } from "@/features/invitations/components/invite-mem
 import { PendingInvitationsList } from "@/features/invitations/components/pending-invitations-list";
 import { MembersList } from "@/features/members/components/members-list";
 
+import { getProjectActivity } from "@/features/activity/queries/get-project-activity";
+import { ActivityFeed } from "@/features/activity/components/activity-feed";
+
 interface ProjectDetailsPageProps {
   params: Promise<{
     projectId: string;
@@ -46,10 +49,11 @@ export default async function ProjectDetailsPage({
     notFound();
   }
 
-  const [members, pendingInvitations] = await Promise.all([
-    getProjectMembers(projectId),
-    getPendingInvitations(projectId),
-  ]);
+  const [members, pendingInvitations, activity] = await Promise.all([
+     getProjectMembers(projectId),
+     getPendingInvitations(projectId),
+    getProjectActivity(projectId),
+   ]);
 
   const currentMembership = members.find(
     (member) => member.user.id === session.user.id,
@@ -224,6 +228,23 @@ export default async function ProjectDetailsPage({
           ))}
         </div>
       )}
+
+            {/* Activity */}
+      <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Activity</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Who changed what, and when.
+          </p>
+        </div>
+
+        <ActivityFeed
+          key={activity.items[0]?.id ?? "empty"}
+          projectId={project.id}
+          initialItems={activity.items}
+          initialCursor={activity.nextCursor}
+        />
+      </div>
     </div>
   );
 }
