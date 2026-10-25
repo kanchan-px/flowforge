@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasProjectAccess } from "@/features/projects/utils/project-access";
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 const updateTaskStatusSchema = z.object({
   taskId: z.string().min(1),
@@ -68,6 +69,18 @@ export async function updateTaskStatus(taskId: string, status: string) {
 
     return true;
   });
+
+  if (moved) {
+    await logActivity({
+      type: "TASK_STATUS_CHANGED",
+      projectId: task.projectId,
+      actorId: session.user.id,
+      taskId: task.id,
+      taskName: task.name,
+      fromValue: task.status,
+      toValue: nextStatus,
+    });
+  }
 
   revalidatePath(`/projects/${task.projectId}`);
   revalidatePath("/tasks");

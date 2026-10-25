@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 const roleSchema = z.enum(["ADMIN", "MEMBER"]);
 
@@ -25,9 +26,12 @@ export async function updateMemberRole(memberId: string, role: string) {
     return { error: "Unauthorized." };
   }
 
-  const target = await prisma.projectMember.findUnique({
+    const target = await prisma.projectMember.findUnique({
     where: { id: memberId },
-    include: { project: { select: { id: true, name: true } } },
+    include: {
+      project: { select: { id: true, name: true } },
+      user: { select: { name: true } },
+    },
   });
 
   if (!target) {
@@ -62,6 +66,15 @@ export async function updateMemberRole(memberId: string, role: string) {
   await prisma.projectMember.update({
     where: { id: target.id },
     data: { role: parsedRole.data },
+  });
+
+  await logActivity({
+    type: "MEMBER_ROLE_CHANGED",
+    projectId: target.projectId,
+    actorId: session.user.id,
+    targetName: target.user.name,
+    fromValue: target.role,
+    toValue: parsedRole.data,
   });
 
   try {

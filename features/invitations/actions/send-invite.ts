@@ -12,6 +12,7 @@ import {
   type SendInviteValues,
 } from "../schemas/send-invite-schema";
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 const INVITE_EXPIRY_DAYS = 7;
 
@@ -55,6 +56,14 @@ export async function sendInvite(values: SendInviteValues) {
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
+
+  await logActivity({
+    type: "MEMBER_INVITED",
+    projectId,
+    actorId: session.user.id,
+    targetName: email,
+    toValue: role,
+  });
 
   if (existingUser) {
     const alreadyMember = await prisma.projectMember.findUnique({

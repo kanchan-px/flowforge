@@ -9,6 +9,7 @@ import { hasProjectAccess } from "@/features/projects/utils/project-access";
 import { createNotification } from "@/features/notifications/actions/create-notification";
 
 import { commentContentSchema } from "../schemas/comment-schema";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 export async function addComment(taskId: string, content: string) {
   const parsed = commentContentSchema.safeParse(content);
@@ -40,6 +41,14 @@ export async function addComment(taskId: string, content: string) {
       authorId: session.user.id,
       content: parsed.data,
     },
+  });
+
+  await logActivity({
+    type: "TASK_COMMENTED",
+    projectId: task.projectId,
+    actorId: session.user.id,
+    taskId: task.id,
+    taskName: task.name,
   });
 
   // The comment is saved. Notifications are a bonus, so a failure here

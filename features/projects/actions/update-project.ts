@@ -10,6 +10,7 @@ import {
   updateProjectSchema,
   type UpdateProjectValues,
 } from "../schemas/update-project-schema";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 export async function updateProject(
   id: string,
@@ -60,7 +61,14 @@ export async function updateProject(
     data: validated.data,
   });
 
+  await logActivity({
+    type: "PROJECT_UPDATED",
+    projectId: id,
+    actorId: session.user.id,
+  });
+
   revalidatePath("/workspace");
+  revalidatePath(`/projects/${id}`);
 
   return {
     success: true,

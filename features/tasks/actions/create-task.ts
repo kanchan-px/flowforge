@@ -18,6 +18,8 @@ import {
   isProjectMember,
 } from "@/features/projects/utils/project-access";
 
+import { logActivity } from "@/features/activity/utils/log-activity";
+
 export async function createTask(values: CreateTaskValues) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -71,6 +73,32 @@ export async function createTask(values: CreateTaskValues) {
     },
   });
 
+  await logActivity({
+    type: "TASK_CREATED",
+    projectId: task.projectId,
+    actorId: session.user.id,
+    taskId: task.id,
+    taskName: task.name,
+  });
+
+  if(assigneeId){
+    const assignee = await prisma.user.findUnique({
+      where: {
+        id: assigneeId,
+      },
+      select: { name:true },
+    });
+
+    await logActivity({
+      type: "TASK_ASSIGNED",
+      projectId: task.projectId,
+      actorId: session.user.id,
+      taskId: task.id,
+      taskName: task.name,
+      targetName: assignee?.name ?? null,
+    });
+  }
+
   await createNotification({
     userId: session.user.id,
     type: "TASK_CREATED",
@@ -95,4 +123,5 @@ export async function createTask(values: CreateTaskValues) {
 
   revalidatePath("/tasks");
   revalidatePath("/workspace");
+  revalidatePath(`/projects/${task.projectId}`);
 }

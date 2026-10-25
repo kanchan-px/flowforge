@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 export async function removeMember(memberId: string) {
   const session = await auth.api.getSession({
@@ -18,7 +19,10 @@ export async function removeMember(memberId: string) {
 
   const target = await prisma.projectMember.findUnique({
     where: { id: memberId },
-    include: { project: { select: { id: true, name: true } } },
+    include: {
+      project: { select: { id: true, name: true } },
+      user: { select: { name: true } },
+    },
   });
 
   if (!target) {
@@ -68,6 +72,13 @@ export async function removeMember(memberId: string) {
       where: { id: target.id },
     }),
   ]);
+
+  await logActivity({
+    type: isSelf ? "MEMBER_LEFT" : "MEMBER_REMOVED",
+    projectId: target.projectId,
+    actorId: session.user.id,
+    targetName: isSelf ? null : target.user.name,
+  });
 
   if (!isSelf) {
     try {

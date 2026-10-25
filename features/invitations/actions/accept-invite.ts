@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 export async function acceptInvite(token: string) {
   const session = await auth.api.getSession({
@@ -90,6 +91,13 @@ export async function acceptInvite(token: string) {
     title: "Invitation accepted",
     message: `${session.user.name} accepted your invitation to join "${invitation.project.name}".`,
     projectId: invitation.projectId,
+  });
+
+  await logActivity({
+    type: "MEMBER_JOINED",
+    projectId: invitation.projectId,
+    actorId: session.user.id,
+    toValue: invitation.role,
   });
 
   revalidatePath(`/projects/${invitation.projectId}`);

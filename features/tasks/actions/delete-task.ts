@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/actions/create-notification";
 
 import { hasProjectAccess } from "@/features/projects/utils/project-access";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 export async function deleteTask(id: string) {
   const session = await auth.api.getSession({
@@ -50,6 +51,17 @@ export async function deleteTask(id: string) {
       id,
     },
   });
+  // No taskId here on purpose: the task no longer exists, and pointing
+  // a diary line at a deleted task would be rejected by the database.
+  // taskName keeps the line readable.
+  await logActivity({
+    type: "TASK_DELETED",
+    projectId: task.projectId,
+    actorId: session.user.id,
+    taskName: task.name,
+  });
 
   revalidatePath("/tasks");
+  revalidatePath(`/projects/${task.projectId}`);
+
 }

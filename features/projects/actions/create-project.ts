@@ -6,11 +6,13 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 import { createNotification } from "@/features/notifications/actions/create-notification";
+import { logActivity } from "@/features/activity/utils/log-activity";
 
 import {
   createProjectSchema,
   type CreateProjectValues,
 } from "../schemas/create-project-schema";
+import { type } from "os";
 
 export async function createProject(values: unknown) {
   // Validate form data
@@ -49,6 +51,12 @@ export async function createProject(values: unknown) {
     title: "Project created",
     message: `You created the project "${project.name}".`,
   });
+
+  +await logActivity({
+  type: "PROJECT_CREATED",
+  projectId: project.id,
+  actorId: session.user.id,
+});
 
   revalidatePath("/workspace");
 

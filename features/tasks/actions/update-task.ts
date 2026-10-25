@@ -18,6 +18,8 @@ import {
   isProjectMember,
 } from "@/features/projects/utils/project-access";
 
+import { logActivity } from "@/features/activity/utils/log-activity";
+
 export async function updateTask(id: string, values: CreateTaskValues) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -106,6 +108,63 @@ export async function updateTask(id: string, values: CreateTaskValues) {
     });
   }
 
+  // --- Acitivity diary : one line per thing that actually changed. ---
+
+  const detailsChanged = 
+    task.name != validated.name || 
+    (task.description ?? "") != (validated.description ?? "") ||
+    task.priority != validated.priority ||
+    (task.dueDate?.toISOString() ?? null) != (validated.dueDate ?? "" ) ||
+    task.projectId != validated.projectId;
+
+  if (detailsChanged) {
+    await logActivity({
+      type: "TASK_UPDATED",
+      projectId: validated.projectId,
+      actorId: session.user.id,
+      taskId: task.id,
+      taskName: validated.name,
+    });
+  }
+
+  if (statusChanged) {
+    await logActivity({
+      type: "TASK_STATUS_CHANGED",
+      projectId: validated.projectId,
+      actorId: session.user.id,
+      taskId: task.id,
+      taskName: validated.name,
+      fromValue: task.status,
+      toValue: validated.status,
+    });
+  }
+
+  if (assigneeChanged) {
+    if (assigneeId) {
+      const assignee = await prisma.user.findUnique({
+        where: { id: assigneeId },
+        select: { name: true },
+      });
+
+      await logActivity({
+        type: "TASK_ASSIGNED",
+        projectId: validated.projectId,
+        actorId: session.user.id,
+        taskId: task.id,
+        taskName: validated.name,
+        targetName: assignee?.name ?? null,
+      });
+    } else {
+      await logActivity({
+        type: "TASK_UNASSIGNED",
+        projectId: validated.projectId,
+        actorId: session.user.id,
+        taskId: task.id,
+        taskName: validated.name,
+      });
+    }
+  }
+
   // Create a notification when a task is completed.
   if (task.status !== "DONE" && validated.status === "DONE") {
     await createNotification({
@@ -132,6 +191,14 @@ export async function updateTask(id: string, values: CreateTaskValues) {
   }
 
   revalidatePath("/tasks");
+  revalidatePath(`/projects/${validated.projectId}`);
 
-  revalidatePath("/tasks");
+  if (task.projectId !== validated.projectId) {
+    revalidatePath(`/projects/${task.projectId}`);
+  }
+  revalidatePath(`/projects/${validated.projectId}`);
+
+  if (task.projectId !== validated.projectId) {
+    revalidatePath(`/projects/${task.projectId}`);
+  }
 }
