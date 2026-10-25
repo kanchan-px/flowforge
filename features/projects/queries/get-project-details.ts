@@ -22,6 +22,7 @@ export async function getProjectDetails(
       _count: {
         select: {
           tasks: true,
+          members: true,
         },
       },
     },
@@ -29,3 +30,7 @@ export async function getProjectDetails(
 
   return project;
 }
+
+export type ProjectDetails = NonNullable<
+  Awaited<ReturnType<typeof getProjectDetails>>
+>;
