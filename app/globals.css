@@ -128,3 +128,113 @@
     @apply font-sans;
   }
 }
+
+
+/* ============ Landing page ============ */
+
+/* Faint grid that fades out toward the edges */
+.ff-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 23 42 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 23 42 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 35%, transparent 100%);
+}
+
+/* Slide up and fade in on page load. Delay is set per element with --ff-delay */
+@keyframes ff-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ff-fade-up {
+  animation: ff-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: var(--ff-delay, 0ms);
+}
+
+/* Gentle up and down float */
+@keyframes ff-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.ff-float { animation: ff-float 6s ease-in-out infinite; }
+
+/* Slowly drifting background blobs */
+@keyframes ff-blob {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(30px, -24px, 0) scale(1.08); }
+}
+.ff-blob { animation: ff-blob 14s ease-in-out infinite; }
+
+/* Headline colour that slowly flows */
+@keyframes ff-gradient-shift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 200% 50%; }
+}
+.ff-gradient-text {
+  background-image: linear-gradient(90deg, #2563eb, #7c3aed, #2563eb);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: ff-gradient-shift 6s linear infinite;
+}
+
+/* Reveal on scroll. Only in browsers that support scroll timelines;
+   everywhere else the content is simply visible. */
+@keyframes ff-reveal-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  .ff-reveal {
+    animation: ff-reveal-in linear backwards;
+    animation-timeline: view();
+    animation-range: entry 5% entry 40%;
+  }
+}
+
+/* ---- Hero board: the card that hops between columns ----
+   Each column is (100% - 2 gaps of 0.75rem) / 3 wide and has 0.625rem padding,
+   so the card is one column minus 1.25rem, and one hop is card width + 2rem. */
+.ff-hop-card {
+  left: 0.625rem;
+  top: 2.625rem; /* column padding + header (1.5rem) + gap (0.5rem) */
+  width: calc((100% - 1.5rem) / 3 - 1.25rem);
+  height: 4.25rem; /* same height as the dashed drop slots (h-17) */
+  animation: ff-card-hop 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes ff-card-hop {
+  0%, 22%  { transform: translateX(0); opacity: 1; }
+  30%, 52% { transform: translateX(calc(100% + 2rem)); }
+  60%, 82% { transform: translateX(calc(200% + 4rem)); opacity: 1; }
+  92%      { transform: translateX(calc(200% + 4rem)); opacity: 0; }
+  93%      { transform: translateX(0); opacity: 0; }
+  100%     { transform: translateX(0); opacity: 1; }
+}
+
+/* Status label inside the moving card: To Do, then In Progress, then Done */
+.ff-chip { opacity: 0; }
+.ff-chip-a { animation: ff-chip-a 9s ease-in-out infinite; }
+.ff-chip-b { animation: ff-chip-b 9s ease-in-out infinite; }
+.ff-chip-c { animation: ff-chip-c 9s ease-in-out infinite; }
+@keyframes ff-chip-a { 0%, 24% { opacity: 1; } 28%, 92% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes ff-chip-b { 0%, 24% { opacity: 0; } 28%, 52% { opacity: 1; } 56%, 100% { opacity: 0; } }
+@keyframes ff-chip-c { 0%, 52% { opacity: 0; } 56%, 90% { opacity: 1; } 94%, 100% { opacity: 0; } }
+
+/* People who ask their device for less motion get a still page */
+@media (prefers-reduced-motion: reduce) {
+  .ff-fade-up,
+  .ff-float,
+  .ff-blob,
+  .ff-gradient-text,
+  .ff-reveal,
+  .ff-hop-card,
+  .ff-chip-a,
+  .ff-chip-b,
+  .ff-chip-c {
+    animation: none;
+  }
+  .ff-hop-card { transform: translateX(calc(100% + 2rem)); }
+  .ff-chip-b { opacity: 1; }
+}
