@@ -12,13 +12,13 @@ import type { CommentData } from "../types";
 import { CommentItem } from "./comment-item";
 
 export function CommentThread({ taskId }: { taskId: string }) {
-  // null means "still loading"
   const [comments, setComments] = useState<CommentData[] | null>(null);
   const [currentUserId, setCurrentUserId] = useState("");
   const [canModerate, setCanModerate] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [isPosting, startPosting] = useTransition();
+
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
@@ -36,8 +36,36 @@ export function CommentThread({ taskId }: { taskId: string }) {
   }, [taskId]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    let cancelled = false;
+
+    async function loadInitialComments() {
+      const result = await getTaskComments(taskId);
+
+      if (cancelled) {
+        return;
+      }
+
+      if ("error" in result) {
+        setLoadError(result.error);
+        return;
+      }
+
+      setLoadError(null);
+      setComments(result.comments);
+      setCurrentUserId(result.currentUserId);
+      setCanModerate(result.canModerate);
+    }
+
+    loadInitialComments().catch(() => {
+      if (!cancelled) {
+        setLoadError("Failed to load comments. Please try again.");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [taskId]);
 
   function handlePost() {
     if (draft.trim() === "") {
@@ -56,7 +84,10 @@ export function CommentThread({ taskId }: { taskId: string }) {
       await load();
 
       requestAnimationFrame(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+        bottomRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
       });
     });
   }
@@ -65,7 +96,9 @@ export function CommentThread({ taskId }: { taskId: string }) {
     <div className="space-y-4">
       <div className="max-h-72 overflow-y-auto pr-1">
         {loadError ? (
-          <p className="py-6 text-center text-sm text-red-600">{loadError}</p>
+          <p className="py-6 text-center text-sm text-red-600">
+            {loadError}
+          </p>
         ) : comments === null ? (
           <p className="py-6 text-center text-sm text-slate-500">
             Loading comments...
