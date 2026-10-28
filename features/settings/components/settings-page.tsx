@@ -6,6 +6,7 @@ import { NotificationSettings } from "./notification-settings";
 import { DangerZone } from "./danger-zone";
 
 import { getNotificationPreferences } from "../queries/get-notification-preferences";
+import { LinkGoogleButton } from "./LinkGoogleButton";
 
 export async function SettingsPage() {
   const session = await getSession();
@@ -49,6 +50,8 @@ export async function SettingsPage() {
         <NotificationSettings
           preferences={notificationPreferences}
         />
+        
+        <LinkGoogleButton />
 
         <DangerZone />
       </div>
