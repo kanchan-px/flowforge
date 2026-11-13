@@ -1,15 +1,14 @@
 import { getSession } from "@/lib/session";
-import { Suspense } from "react";
+
 import { ProfileSettings } from "./profile-settings";
 import { SecuritySettings } from "./security-settings";
+import { ConnectedAccounts } from "./connected-accounts";
 import { NotificationSettings } from "./notification-settings";
 import { DangerZone } from "./danger-zone";
 
 import { getNotificationPreferences } from "../queries/get-notification-preferences";
-import { LinkGoogleButton } from "./LinkGoogleButton";
-
-import { getHasPassword } from "../queries/get-has-password";
-import { isRecentSignIn } from "../utils/recent-sign-in";
+import { getLinkedAccounts } from "../queries/get-linked-accounts";
+import { hasCompletedDeleteReauth } from "../utils/delete-reauth";
 
 export async function SettingsPage() {
   const session = await getSession();
@@ -31,8 +30,17 @@ export async function SettingsPage() {
     return null;
   }
 
-  const hasPassword = await getHasPassword(session.user.id);
-  const hasRecentSignIn = isRecentSignIn(session.session.createdAt);
+  const { hasPassword, hasGoogle } = await getLinkedAccounts(
+    session.user.id,
+  );
+
+  // Only meaningful for Google-only accounts.
+  const reauthConfirmed = hasPassword
+    ? false
+    : await hasCompletedDeleteReauth(
+        session.user.id,
+        session.session.createdAt,
+      );
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 p-6 md:p-8">
@@ -53,19 +61,20 @@ export async function SettingsPage() {
 
         <SecuritySettings hasPassword={hasPassword} />
 
+        <ConnectedAccounts
+          hasGoogle={hasGoogle}
+          hasPassword={hasPassword}
+        />
+
         <NotificationSettings
           preferences={notificationPreferences}
         />
-        
-        <LinkGoogleButton />
 
-        <Suspense fallback={null}>
-          <DangerZone
-            email={user.email}
-            hasPassword={hasPassword}
-            hasRecentSignIn={hasRecentSignIn}
-          />
-        </Suspense>
+        <DangerZone
+          email={user.email}
+          hasPassword={hasPassword}
+          reauthConfirmed={reauthConfirmed}
+        />
       </div>
     </div>
   );

@@ -6,7 +6,10 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 import { getHasPassword } from "../queries/get-has-password";
-import { isRecentSignIn } from "../utils/recent-sign-in";
+import {
+  clearDeleteReauth,
+  hasCompletedDeleteReauth,
+} from "../utils/delete-reauth";
 
 type DeleteAccountResult =
   | { success: true }
@@ -43,13 +46,21 @@ export async function deleteAccount(
     } catch {
       return { success: false, error: "Incorrect current password." };
     }
-  } else if (!isRecentSignIn(session.session.createdAt)) {
-    // Google-only account: they must have signed in with Google very recently.
-    return {
-      success: false,
-      error: "For your security, confirm with Google again to delete your account.",
-      requiresReauth: true,
-    };
+  } else {
+    // Google-only account: they must have started the confirmation and then
+    // signed in with Google again AFTER that.
+    const confirmed = await hasCompletedDeleteReauth(
+      userId,
+      session.session.createdAt,
+    );
+
+    if (!confirmed) {
+      return {
+        success: false,
+        error: "Please confirm with Google to delete your account.",
+        requiresReauth: true,
+      };
+    }
   }
 
   try {
@@ -64,6 +75,8 @@ export async function deleteAccount(
       error: "Something went wrong while deleting your account. Please try again.",
     };
   }
+
+  await clearDeleteReauth(userId);
 
   return { success: true };
 }

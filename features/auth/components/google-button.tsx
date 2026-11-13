@@ -33,10 +33,12 @@ export function GoogleButton({
   label = "Continue with Google",
   callbackURL = "/workspace", 
   errorCallbackURL = "/sign-in",
+  beforeSignIn,
 }: {
   label?: string;
   callbackURL?: string;
   errorCallbackURL?: string;
+  beforeSignIn?: () => Promise<boolean>;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -44,6 +46,14 @@ export function GoogleButton({
     setLoading(true);
 
     try {
+      if (beforeSignIn) {
+        const canContinue = await beforeSignIn();
+
+        if (!canContinue) {
+          setLoading(false);
+          return;
+        }
+      }
       const { error } = await authClient.signIn.social({
         provider: "google",
         callbackURL,

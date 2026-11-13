@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
@@ -9,33 +8,42 @@ import { GoogleButton } from "@/features/auth/components/google-button";
 import { authClient } from "@/lib/auth-client";
 
 import { deleteAccount } from "../actions/delete-account";
+import { startDeleteReauth } from "../actions/start-delete-reauth";
 
 interface DangerZoneProps {
   email: string;
   hasPassword: boolean;
-  hasRecentSignIn: boolean;
+  // Computed on the server: true only after "Confirm with Google" was
+  // started and a fresh Google sign-in finished.
+  reauthConfirmed: boolean;
 }
 
 export function DangerZone({
   email,
   hasPassword,
-  hasRecentSignIn,
+  reauthConfirmed,
 }: DangerZoneProps) {
-  const searchParams = useSearchParams();
-
-  // We send people back with ?reauth=delete after the Google check,
-  // so the panel can open by itself.
-  const returnedFromGoogle = searchParams.get("reauth") === "delete";
-
+  // After coming back from Google, open the panel by itself.
   const [showConfirmation, setShowConfirmation] = useState(
-    !hasPassword && returnedFromGoogle,
+    !hasPassword && reauthConfirmed,
   );
-  const [needsReauth, setNeedsReauth] = useState(!hasRecentSignIn);
+  const [needsReauth, setNeedsReauth] = useState(!reauthConfirmed);
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const canDelete = hasPassword || !needsReauth;
+
+  async function handleStartReauth() {
+    const result = await startDeleteReauth();
+
+    if (!result.success) {
+      toast.error(result.error);
+      return false;
+    }
+
+    return true;
+  }
 
   function handleDeleteAccount() {
     if (hasPassword && !currentPassword) {
@@ -184,8 +192,9 @@ export function DangerZone({
                 <div className="mt-4 max-w-xs">
                   <GoogleButton
                     label="Confirm with Google"
-                    callbackURL="/settings?reauth=delete"
+                    callbackURL="/settings"
                     errorCallbackURL="/settings"
+                    beforeSignIn={handleStartReauth}
                   />
                 </div>
               </>

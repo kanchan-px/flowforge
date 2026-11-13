@@ -15,7 +15,7 @@ export function LinkGoogleButton() {
     try {
       const { error } = await authClient.linkSocial({
         provider: "google",
-        callbackURL: "/workspace",
+        callbackURL: "/settings",
       });
 
       if (error) {
