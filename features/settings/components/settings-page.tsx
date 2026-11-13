@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-
+import { Suspense } from "react";
 import { ProfileSettings } from "./profile-settings";
 import { SecuritySettings } from "./security-settings";
 import { NotificationSettings } from "./notification-settings";
@@ -7,6 +7,9 @@ import { DangerZone } from "./danger-zone";
 
 import { getNotificationPreferences } from "../queries/get-notification-preferences";
 import { LinkGoogleButton } from "./LinkGoogleButton";
+
+import { getHasPassword } from "../queries/get-has-password";
+import { isRecentSignIn } from "../utils/recent-sign-in";
 
 export async function SettingsPage() {
   const session = await getSession();
@@ -28,6 +31,9 @@ export async function SettingsPage() {
     return null;
   }
 
+  const hasPassword = await getHasPassword(session.user.id);
+  const hasRecentSignIn = isRecentSignIn(session.session.createdAt);
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8 p-6 md:p-8">
       {/* Header */}
@@ -45,7 +51,7 @@ export async function SettingsPage() {
       <div className="space-y-6">
         <ProfileSettings user={user} />
 
-        <SecuritySettings />
+        <SecuritySettings hasPassword={hasPassword} />
 
         <NotificationSettings
           preferences={notificationPreferences}
@@ -53,7 +59,13 @@ export async function SettingsPage() {
         
         <LinkGoogleButton />
 
-        <DangerZone />
+        <Suspense fallback={null}>
+          <DangerZone
+            email={user.email}
+            hasPassword={hasPassword}
+            hasRecentSignIn={hasRecentSignIn}
+          />
+        </Suspense>
       </div>
     </div>
   );

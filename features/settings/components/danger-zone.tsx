@@ -1,28 +1,58 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 import { AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteAccount } from "../actions/delete-account";
+import { GoogleButton } from "@/features/auth/components/google-button";
 import { authClient } from "@/lib/auth-client";
 
-export function DangerZone() {
-  const [showConfirmation, setShowConfirmation] = useState(false);
+import { deleteAccount } from "../actions/delete-account";
+
+interface DangerZoneProps {
+  email: string;
+  hasPassword: boolean;
+  hasRecentSignIn: boolean;
+}
+
+export function DangerZone({
+  email,
+  hasPassword,
+  hasRecentSignIn,
+}: DangerZoneProps) {
+  const searchParams = useSearchParams();
+
+  // We send people back with ?reauth=delete after the Google check,
+  // so the panel can open by itself.
+  const returnedFromGoogle = searchParams.get("reauth") === "delete";
+
+  const [showConfirmation, setShowConfirmation] = useState(
+    !hasPassword && returnedFromGoogle,
+  );
+  const [needsReauth, setNeedsReauth] = useState(!hasRecentSignIn);
   const [showPassword, setShowPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  const canDelete = hasPassword || !needsReauth;
+
   function handleDeleteAccount() {
-    if (!currentPassword) {
+    if (hasPassword && !currentPassword) {
       toast.error("Please enter your current password.");
       return;
     }
 
     startTransition(async () => {
-      const result = await deleteAccount(currentPassword);
+      const result = await deleteAccount(
+        hasPassword ? currentPassword : undefined,
+      );
 
       if (!result.success) {
+        if (result.requiresReauth) {
+          setNeedsReauth(true);
+        }
+
         toast.error(result.error ?? "Failed to delete account.");
         return;
       }
@@ -91,62 +121,98 @@ export function DangerZone() {
               Confirm account deletion
             </h4>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              This action cannot be undone. Enter your current
-              password to permanently delete your account and
-              all associated data.
-            </p>
+            {hasPassword ? (
+              <>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This action cannot be undone. Enter your current
+                  password to permanently delete your account and
+                  all associated data.
+                </p>
 
-            <div className="mt-4">
-              <label className="text-sm font-medium">
-                Current password
-              </label>
+                <div className="mt-4">
+                  <label className="text-sm font-medium">
+                    Current password
+                  </label>
 
-              <div className="relative mt-2">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={currentPassword}
-                  onChange={(event) =>
-                    setCurrentPassword(event.target.value)
-                  }
-                  disabled={isPending}
-                  placeholder="Enter your current password"
-                  className="w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm outline-none transition focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
-                />
+                  <div className="relative mt-2">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      value={currentPassword}
+                      onChange={(event) =>
+                        setCurrentPassword(event.target.value)
+                      }
+                      disabled={isPending}
+                      placeholder="Enter your current password"
+                      className="w-full rounded-md border bg-background px-3 py-2 pr-10 text-sm outline-none transition focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                    />
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowPassword((previous) => !previous)
-                  }
-                  disabled={isPending}
-                  aria-label={
-                    showPassword
-                      ? "Hide password"
-                      : "Show password"
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword((previous) => !previous)
+                      }
+                      disabled={isPending}
+                      aria-label={
+                        showPassword
+                          ? "Hide password"
+                          : "Show password"
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            ) : needsReauth ? (
+              <>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This action cannot be undone. You sign in with
+                  Google, so please confirm it&apos;s you by
+                  signing in with Google again. Choose the account{" "}
+                  <span className="font-medium text-foreground">
+                    {email}
+                  </span>
+                  .
+                </p>
+
+                <div className="mt-4 max-w-xs">
+                  <GoogleButton
+                    label="Confirm with Google"
+                    callbackURL="/settings?reauth=delete"
+                    errorCallbackURL="/settings"
+                  />
+                </div>
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">
+                You&apos;ve confirmed your identity with Google.
+                This will permanently delete the account for{" "}
+                <span className="font-medium text-foreground">
+                  {email}
+                </span>{" "}
+                and all associated data. This cannot be undone.
+              </p>
+            )}
 
             <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={isPending}
-                className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isPending
-                  ? "Deleting Account..."
-                  : "Permanently Delete Account"}
-              </button>
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={isPending}
+                  className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isPending
+                    ? "Deleting Account..."
+                    : "Permanently Delete Account"}
+                </button>
+              )}
 
               <button
                 type="button"

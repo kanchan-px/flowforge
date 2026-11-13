@@ -31,8 +31,12 @@ function GoogleIcon() {
 
 export function GoogleButton({
   label = "Continue with Google",
+  callbackURL = "/workspace", 
+  errorCallbackURL = "/sign-in",
 }: {
   label?: string;
+  callbackURL?: string;
+  errorCallbackURL?: string;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -42,8 +46,8 @@ export function GoogleButton({
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/workspace",
-        errorCallbackURL: "/sign-in",
+        callbackURL,
+        errorCallbackURL,
       });
 
       if (error) {

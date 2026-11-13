@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { changePassword } from "../actions/change-password";
 
-export function SecuritySettings() {
+export function SecuritySettings({ hasPassword }: { hasPassword: boolean }) {
   const [showCurrentPassword, setShowCurrentPassword] =
     useState(false);
 
@@ -93,6 +93,7 @@ export function SecuritySettings() {
 
       <div className="space-y-6 p-6">
         {/* Change Password */}
+        {hasPassword ? (
         <form
           onSubmit={handleChangePassword}
           className="space-y-5"
@@ -110,6 +111,7 @@ export function SecuritySettings() {
           {/* Current Password */}
           <PasswordInput
             label="Current password"
+            autoComplete="current-password"
             value={currentPassword}
             onChange={setCurrentPassword}
             showPassword={showCurrentPassword}
@@ -124,6 +126,7 @@ export function SecuritySettings() {
           {/* New Password */}
           <PasswordInput
             label="New password"
+            autoComplete="new-password"
             value={newPassword}
             onChange={setNewPassword}
             showPassword={showNewPassword}
@@ -138,6 +141,7 @@ export function SecuritySettings() {
           {/* Confirm Password */}
           <PasswordInput
             label="Confirm new password"
+            autoComplete="new-password"
             value={confirmPassword}
             onChange={setConfirmPassword}
             showPassword={showConfirmPassword}
@@ -159,6 +163,18 @@ export function SecuritySettings() {
               : "Change Password"}
           </button>
         </form>
+        ) : (
+          <div>
+            <h3 className="text-sm font-medium">
+              Password
+            </h3>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+              You sign in with Google, so Google manages your
+              password. There&apos;s nothing to change here.
+            </p>
+          </div>
+        )}
 
         {/* Logout */}
         <div className="border-t pt-6">
@@ -191,6 +207,7 @@ function PasswordInput({
   showPassword,
   onToggleVisibility,
   disabled,
+  autoComplete,
 }: {
   label: string;
   value: string;
@@ -198,6 +215,7 @@ function PasswordInput({
   showPassword: boolean;
   onToggleVisibility: () => void;
   disabled: boolean;
+  autoComplete: "current-password" | "new-password";
 }) {
   return (
     <div className="space-y-2">
@@ -208,6 +226,7 @@ function PasswordInput({
       <div className="relative">
         <input
           type={showPassword ? "text" : "password"}
+          autoComplete={autoComplete}
           value={value}
           onChange={(event) =>
             onChange(event.target.value)
