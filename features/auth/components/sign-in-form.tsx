@@ -32,9 +32,16 @@ export function SignInForm() {
     const { error } = await authClient.signIn.email({
       email: values.email,
       password: values.password,
+      callbackURL: "/workspace",
     });
 
     if (error) {
+      // 403 means the password was right but the email isn't verified yet.
+      // The server has re-sent the link, so show the "check your inbox" page.
+      if (error.status === 403) {
+        router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+        return;
+      }
       toast.error("Failed to sign in.");
       return;
     }
@@ -45,8 +52,7 @@ export function SignInForm() {
 
   return (
     <div className="space-y-5">
-      <GoogleButton label="Continue with Google" />{" "}
-      {/* "Sign up with Google" in the sign-up form */}
+      <GoogleButton label="Continue with Google" />
       <div className="flex items-center gap-3 text-xs text-slate-400">
         <span className="h-px flex-1 bg-slate-200" />
         or

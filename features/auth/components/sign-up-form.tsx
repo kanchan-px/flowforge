@@ -7,6 +7,7 @@ import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { signUpSchema, type SignUpValues } from "../sign-up-schema";
 
@@ -34,21 +35,24 @@ export function SignUpForm() {
       name: values.name,
       email: values.email,
       password: values.password,
+      callbackURL: "/workspace",
     });
 
     if (error) {
       console.error(error);
+      toast.error(error.message ?? "Failed to sign up");
       return;
     }
 
-    router.push("/workspace");
-    router.refresh();
+    // With verification on, they must check their inbox first.
+    // With it off, they're already signed in, and the verify page
+    // sends them straight to the dashboard.
+    router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
   }
 
   return (
     <div className="space-y-5">
-      <GoogleButton label="Continue with Google" />{" "}
-      {/* "Sign up with Google" in the sign-up form */}
+      <GoogleButton label="Sign up with Google" />
       <div className="flex items-center gap-3 text-xs text-slate-400">
         <span className="h-px flex-1 bg-slate-200" />
         or
