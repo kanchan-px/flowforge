@@ -17,8 +17,7 @@ Kanban boards · Roles and permissions · Email invitations · Comments · Activ
 
 </div>
 
-> **Status:** personal portfolio project. It is deployed on Vercel with a Neon PostgreSQL database and has no real traffic. Automated tests and CI are not written yet. See [Roadmap](#roadmap) and [Known limitations](#known-limitations).
-
+> **Status:** personal portfolio project. It is deployed on Vercel with a Neon PostgreSQL database and has no real traffic. Automated tests and CI are not written yet.
 ---
 
 ## Table of contents
